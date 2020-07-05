@@ -4,9 +4,12 @@ import (
 	"crypto/ed25519"
 	"crypto/hmac"
 	"crypto/md5"
+	"database/sql"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"math/rand"
@@ -16,6 +19,7 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/adamyi/CTFProxy/third_party/eddsa"
 )
 
@@ -38,8 +42,11 @@ type VerificationResponse struct {
 
 type Configuration struct {
 	ListenAddress string
+	DbType        string
+	DbAddress     string
 	FlagKey       string
 	VerifyKey     *ed25519.PublicKey
+	Mode          string
 }
 
 type Claims struct {
@@ -62,21 +69,31 @@ func UserSplit(r rune) bool {
 
 func readConfig() {
 	var publicKeyPath, flagConfigPath string
-	flag.StringVar(&_configuration.ListenAddress, "listen", "0.0.0.0:80", "http listen address")
+	flag.StringVar(&_configuration.Mode, "mode", "serve", "serve/export/generate/verify")
 	flag.StringVar(&_configuration.FlagKey, "flag_key", "", "flag signature key")
-	flag.StringVar(&publicKeyPath, "jwt_public_key", "", "Path to JWT public key")
 	flag.StringVar(&flagConfigPath, "flag_config", "flags.json", "path to flags configuration json")
+	flag.StringVar(&_configuration.DbType, "dbtype", "", "database type (for export)")
+	flag.StringVar(&_configuration.DbAddress, "dbaddr", "", "database address (for export)")
+	flag.StringVar(&_configuration.ListenAddress, "listen", "0.0.0.0:80", "http listen address")
+	flag.StringVar(&publicKeyPath, "jwt_public_key", "", "Path to JWT public key (for serve mode)")
 	flag.Parse()
-	JwtPubKey, err := ioutil.ReadFile(publicKeyPath)
-	if err != nil {
-		panic(err)
+
+	if _configuration.Mode == "serve" {
+		JwtPubKey, err := ioutil.ReadFile(publicKeyPath)
+		if err != nil {
+			panic(err)
+		}
+		_configuration.VerifyKey, err = eddsa.ParseEdPublicKeyFromPEM(JwtPubKey)
+		if err != nil {
+			panic(err)
+		}
 	}
-	_configuration.VerifyKey, err = eddsa.ParseEdPublicKeyFromPEM(JwtPubKey)
-	if err != nil {
-		panic(err)
-	}
+
 	var flags []Flag
-	file, _ := os.Open(flagConfigPath)
+	file, err := os.Open(flagConfigPath)
+	if err != nil {
+		panic(err)
+	}
 	defer file.Close()
 	decoder := json.NewDecoder(file)
 	err = decoder.Decode(&flags)
@@ -100,8 +117,13 @@ func readConfig() {
 		}
 		_flags[flag.Id] = flag
 		d2f[fk] = flag
-		log.Println(fk)
+		if flag.Type == "fixed" {
+			log.Printf("%s: %s{%s}\n", flag.Id, flag.Prefix, flag.Flag)
+		} else {
+			log.Printf("%s: %s{%s.XXX.YYY}\n", flag.Id, flag.Prefix, flag.Flag)
+		}
 	}
+	log.Println("init complete")
 }
 
 func initFGRsp(rsp http.ResponseWriter) {
@@ -116,21 +138,25 @@ func genFlag(prefix, username, flag, id string) string {
 	return prefix + "{" + flag + "." + base64.StdEncoding.EncodeToString([]byte(username)) + "." + base64.StdEncoding.EncodeToString(h.Sum(nil)) + "}"
 }
 
-func (f Flag) GetFlag(username string) string {
-	userparts := strings.FieldsFunc(username, UserSplit)
-	if userparts[0] != f.Owner {
-		return "NOT_A_FLAG{NO_PERMISSION_TO_GET_FLAG_ASK_COURSE_STAFF}"
-	}
+func (f Flag) GenFlag(username string) string {
 	if f.Type == "fixed" {
 		return f.Prefix + "{" + f.Flag + "}"
 	}
 	if f.Type == "dynamic" {
-		if len(userparts) != 3 {
-			return "NOT_A_FLAG{NO_SUBACC_FOR_DYNAMIC_FLAG_ASK_COURSE_STAFF}"
-		}
-		return genFlag(f.Prefix, userparts[1], f.Flag, f.Id)
+		return genFlag(f.Prefix, username, f.Flag, f.Id)
 	}
 	return "NOT_A_FLAG{WRONG_FLAG_TYPE_ASK_COURSE_STAFF}"
+}
+
+func (f Flag) GetFlag(username string) string {
+	userparts := strings.FieldsFunc(username, UserSplit)
+	if len(userparts) != 3 {
+		return "NOT_A_FLAG{NO_SUBACC_FOR_DYNAMIC_FLAG_ASK_COURSE_STAFF}"
+	}
+	if userparts[0] != f.Owner {
+		return "NOT_A_FLAG{NO_PERMISSION_TO_GET_FLAG_ASK_COURSE_STAFF}"
+	}
+	return f.GenFlag(userparts[1])
 }
 
 func GenerateFlag(rsp http.ResponseWriter, req *http.Request) {
@@ -215,49 +241,73 @@ func VerifyFlag(rsp http.ResponseWriter, req *http.Request) {
 
 	flagStr := strings.TrimSpace(req.FormValue("flag"))
 	log.Println(flagStr)
+
+	f, err := doVerifyFlag(flagStr, userparts[1])
+
+	if err != nil {
+		log.Println(err)
+		r.Message = "invalid flag"
+		enc.Encode(r)
+		return
+	}
+	r.Success = 1
+	r.Flag = *f
+	enc.Encode(r)
+}
+
+func doVerifyFlag(flagStr, userStr string) (*Flag, error) {
 	flagParts := strings.FieldsFunc(flagStr, FlagSplit)
 	log.Println(flagParts)
 
 	if len(flagParts) < 2 {
-		log.Println("len(flagParts) < 2")
-		r.Message = "Incorrect flag"
-		enc.Encode(r)
-		return
+		return nil, errors.New("len(flagParts) < 2")
 	}
 	fk := flagParts[0] + flagParts[1]
 	flagObj, ok := d2f[fk]
 	if !ok {
-		log.Println("Didn't find flagObj " + fk)
-		r.Message = "Incorrect flag"
-		enc.Encode(r)
-		return
+		return nil, errors.New("Didn't find flagObj " + fk)
 	}
 	if flagObj.Type == "fixed" && len(flagParts) == 2 {
-		log.Println("static success")
-		r.Success = 1
-		r.Flag = flagObj
-		enc.Encode(r)
-		return
+		return &flagObj, nil
 	}
 	if flagObj.Type == "dynamic" && len(flagParts) == 4 {
 		fusername, err := base64.StdEncoding.DecodeString(flagParts[2])
-		log.Printf("Dynamic flag - %v (%d) - %v (%d)", string(fusername), len(string(fusername)), userparts[1], len(userparts[1]))
-		if err == nil && string(fusername) == userparts[1] {
-			rf := genFlag(flagObj.Prefix, string(fusername), flagObj.Flag, flagObj.Id)
-			if rf == flagStr {
-				log.Println("Dynamic success")
-				r.Success = 1
-				r.Flag = flagObj
-				enc.Encode(r)
-				return
-			}
+		if err != nil {
+			return &flagObj, errors.New("invalid dynamic flag (b64)")
 		}
+		rf := genFlag(flagObj.Prefix, string(fusername), flagObj.Flag, flagObj.Id)
+		if string(fusername) != userStr {
+			if rf == flagStr {
+				return &flagObj, errors.New(userStr + " submitted flag signed for " + string(fusername))
+			}
+			return &flagObj, errors.New(userStr + " submitted flag with wrong signature for " + string(fusername))
+		}
+		if rf == flagStr {
+			return &flagObj, nil
+		}
+		return &flagObj, errors.New("wrong signature")
 	}
-	log.Printf("fallback incorrect")
-	r.Message = "Incorrect flag"
-	enc.Encode(r)
-	return
+	return &flagObj, errors.New("invalid flag (fallback)")
+}
 
+func exportLog() {
+	var email, ip, flag, datetime string
+	db, err := sql.Open(_configuration.DbType, _configuration.DbAddress)
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+	rows, err := db.Query("select users.email, ip, provided, date from submissions join users on users.id=submissions.user_id order by date")
+	if err != nil {
+		panic(err)
+	}
+
+	for rows.Next() {
+		rows.Scan(&email, &ip, &flag, &datetime)
+		user := strings.Split(email, "@")[0]
+		f, err := doVerifyFlag(flag, user)
+		fmt.Printf("[%s] %s (%s) - %s - %v %v\n", datetime, email, ip, flag, f, err)
+	}
 }
 
 func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
@@ -268,11 +318,37 @@ func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	rand.Seed(time.Now().UnixNano())
 	readConfig()
-	http.HandleFunc("/generate", GenerateFlag)
-	http.HandleFunc("/verify", VerifyFlag)
-	http.HandleFunc("/healthz", HealthCheckHandler)
-	err := http.ListenAndServe(_configuration.ListenAddress, nil)
-	if err != nil {
-		log.Fatal("ListenAndServe: ", err)
+	switch _configuration.Mode {
+	case "serve":
+		http.HandleFunc("/generate", GenerateFlag)
+		http.HandleFunc("/verify", VerifyFlag)
+		http.HandleFunc("/healthz", HealthCheckHandler)
+		err := http.ListenAndServe(_configuration.ListenAddress, nil)
+		if err != nil {
+			log.Fatal("ListenAndServe: ", err)
+		}
+	case "export":
+		exportLog()
+	case "generate":
+		var username, flag string
+		fmt.Printf("Username? ")
+		fmt.Scanln(&username)
+		fmt.Printf("Flag ID? ")
+		fmt.Scanln(&flag)
+		flagObj, ok := _flags[flag]
+		if !ok {
+			panic("unknown flag id")
+		}
+		fmt.Println(flagObj.GenFlag(username))
+	case "verify":
+		var username, flag string
+		fmt.Printf("Username? ")
+		fmt.Scanln(&username)
+		fmt.Printf("Flag? ")
+		fmt.Scanln(&flag)
+		f, err := doVerifyFlag(flag, username)
+		fmt.Printf("%v %v\n", f, err)
+	default:
+		panic("unknown mode")
 	}
 }

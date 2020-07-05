@@ -30,6 +30,7 @@ go_library(
     deps = [
         "//third_party/eddsa:go_default_library",
         "@com_github_dgrijalva_jwt_go//:go_default_library",
+        "@com_github_go_sql_driver_mysql//:go_default_library",
     ],
 )
 
