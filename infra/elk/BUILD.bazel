@@ -1,0 +1,43 @@
+load("@io_bazel_rules_docker//container:container.bzl", "container_image")
+load("//:config.bzl", "CTF_DOMAIN")
+load("//tools:challenge.bzl", "ctf_challenge")
+
+ctf_challenge()
+
+container_image(
+    name = "elasticsearch",
+    base = "@elasticsearch//image",
+    env = {
+        "TAKE_FILE_OWNERSHIP": "1",
+    },
+    files = [
+        ":elasticsearch.yml",
+        ":elasticsearch-docker",
+    ],
+    ports = [],
+    symlinks = {
+        "/usr/local/bin/docker-entrypoint.sh": "/elasticsearch-docker",
+        "/usr/share/elasticsearch/config/elasticsearch.yml": "/elasticsearch.yml",
+    },
+    user = "root",
+    visibility = ["//visibility:public"],
+)
+
+container_image(
+    name = "kibana",
+    base = "@kibana//image",
+    env = {
+        "ELASTICSEARCH_HOSTS": "https://elasticsearch." + CTF_DOMAIN,
+    },
+    files = [
+        ":kibana.yml",
+        ":kibana-docker",
+    ],
+    ports = [],
+    symlinks = {
+        "/usr/local/bin/kibana-docker": "/kibana-docker",
+        "/usr/share/kibana/config/kibana.yml": "/kibana.yml",
+    },
+    user = "root",
+    visibility = ["//visibility:public"],
+)

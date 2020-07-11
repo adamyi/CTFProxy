@@ -1,0 +1,16 @@
+{% if footerPromos %}
+<footer class="devsite-footer-promos nocontent">
+  <nav class="devsite-full-site-width">
+    <ul class="devsite-footer-promos-list">
+      <div class="easfs-footer__top-section">
+        <h5>Find us on</h5>
+        <ul class="easfs-footer__social-list">
+          {% for promo in footerPromos %}
+          <li><a href="{{ promo.Path }}" target="_blank"><img class="easfs-footer__social-btn" src="{{ promo.Icon }}"></a></li>
+          {% endfor %}
+        </ul>
+      </div>
+    </ul>
+  </nav>
+</footer>
+{% endif %}

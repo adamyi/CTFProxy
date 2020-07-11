@@ -1,0 +1,149 @@
+.devsite-section-nav-mobile {
+  display: block;
+  max-height: 100% !important;
+}
+
+.devsite-landing-row-multiline .devsite-landing-row-group {
+  flex-wrap: wrap;
+}
+
+/*
+.devsite-banner {
+  margin-top: 0;
+}
+*/
+
+body {
+  background-color: #151515;
+  color: white;
+}
+
+.devsite-top-logo-row-wrapper {
+  background-color: black;
+}
+
+.devsite-product-name .devsite-breadcrumb-link {
+  color: rgba(255, 255, 255, .54);
+}
+
+.devsite-product-name .devsite-breadcrumb-link:hover, .devsite-product-name .devsite-breadcrumb-link:focus {
+  color: rgba(255, 255, 255, .87);
+}
+
+.devsite-header-icon-button {
+  color: rgba(255, 255, 255, .54);
+}
+
+.devsite-header-upper-tabs .devsite-doc-set-nav-tab {
+  color: rgba(255, 255, 255, .54);
+}
+
+.devsite-header-upper-tabs .devsite-doc-set-nav-active {
+  color: rgba(255, 255, 255, .87);
+}
+
+.devsite-header-upper-tabs .devsite-doc-set-nav-tab:hover, .devsite-header-upper-tabs .devsite-doc-set-nav-tab:focus {
+  color: rgba(255, 255, 255, .87);
+}
+
+.devsite-landing-row-cards .devsite-landing-row-item:not(.devsite-background) {
+    background: #555;
+}
+
+.devsite-section-nav {
+  background: #2f2f2f;
+}
+
+.devsite-page-nav {
+  background: #2f2f2f;
+}
+
+.devsite-nav-title {
+  color: #dedede;
+}
+
+.devsite-high-contrast .devsite-search-active .devsite-search-form, .devsite-search-active .devsite-search-form {
+  background: #8f8f8f;
+}
+
+.devsite-search-form {
+  background: #5f5f5f;
+}
+
+.devsite-search-form:hover {
+  background: #8f8f8f;
+}
+
+.devsite-popout {
+  background: black;
+}
+
+.devsite-search-active .devsite-search-field {
+  color: white;
+}
+
+.devsite-history-item a, .devsite-suggest-item a {
+  color: white;
+}
+
+
+.devsite-banner-dogfood,.devsite-banner-dogfood :link,.devsite-banner-dogfood :visited {
+    background: #eceff1;
+    color: #546e7a;
+}
+
+.devsite-banner-dogfood .devsite-banner-inner {
+    padding-left: 60px
+}
+
+.devsite-banner-dogfood .devsite-banner-inner::before {
+    color: #78909c;
+    content: 'pets';
+    float: left;
+    font: normal normal normal 24px/1 'Material Icons';
+    font-feature-settings: 'liga';
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    word-wrap: normal;
+    margin-left: -36px
+}
+
+@media screen and (max-width: 720px) {
+    .devsite-banner-dogfood .devsite-banner-inner {
+        padding-left: 52px
+    }
+}
+
+.easfs-footer--social-btn,
+.easfs-footer__social-btn {
+  width: 20px;
+  height: 20px;
+
+  padding: 0;
+  margin: 0;
+
+  border: none;
+}
+
+.easfs-footer--top-section h5,
+.easfs-footer__top-section h5 {
+  display: inline-flex;
+  text-transform: uppercase;
+  color: #212121;
+}
+
+.easfs-footer--social-list,
+.easfs-footer__social-list {
+  list-style: none;
+  display: inline-flex;
+  padding-left: 10px;
+}
+
+.easfs-footer--social-list li,
+.easfs-footer__social-list li {
+  float: left;
+
+  margin-bottom: 0;
+  margin-right: 16px;
+}

@@ -1,0 +1,8 @@
+load("@rules_python//python:defs.bzl", "py_library")
+
+py_library(
+    name = "python",
+    srcs = ["__init__.py"],
+    visibility = ["//visibility:public"],
+    deps = ["//:python_ctf_domain"],
+)

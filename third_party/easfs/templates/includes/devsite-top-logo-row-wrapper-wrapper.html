@@ -1,0 +1,25 @@
+<div class="devsite-top-logo-row-wrapper-wrapper">
+  <div class="devsite-top-logo-row-wrapper">
+    <div class="devsite-top-logo-row devsite-full-site-width">
+    <button type="button" class="devsite-expand-section-nav devsite-header-icon-button
+      button-flat material-icons"></button>
+      <div class="devsite-product-name-wrapper">
+        {% if logoRowIcon %}
+        <a class="devsite-product-name-link" href="/">
+          <img src="{{ logoRowIcon }}" class="devsite-{{ logoRowIconType }}-logo" alt="Web">
+        </a>
+        {% endif %}
+        <span class="devsite-product-name">
+          <ul class="devsite-breadcrumb-list">
+            <li class="devsite-breadcrumb-item">
+              <a href="/" class="devsite-breadcrumb-link">
+                <h1 class="devsite-product-name">{{ logoRowTitle }}</h1>
+              </a>
+            </li>
+          </ul>
+        </span>
+      </div>
+      {% include "upper-tabs.html" %}
+    </div>
+  </div>
+</div>

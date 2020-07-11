@@ -1,0 +1,12 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["autocertcache.go"],
+    importpath = "github.com/adamyi/CTFProxy/third_party/autocertcache",
+    visibility = ["//visibility:public"],
+    deps = [
+        "@com_google_cloud_go_storage//:go_default_library",
+        "@org_golang_x_crypto//acme/autocert:go_default_library",
+    ],
+)

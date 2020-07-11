@@ -1,0 +1,16 @@
+network.host: '0.0.0.0'
+node.name: 'main'
+path.data: /data
+discovery.type: single-node
+http.port: 80
+http.cors.enabled: true
+http.cors.allow-origin: '*'
+http.cors.allow-headers: X-Requested-With,X-Auth-Token,Content-Type,Content-Length,Authorization,X-CTFProxy-JWT
+http.cors.allow-methods: OPTIONS,HEAD,GET,POST,PUT,DELETE
+http.cors.allow-credentials: true
+xpack.security.authc:
+  anonymous:
+    username: anonymous_user
+    roles: admin
+    authz_exception: true
+xpack.ml.enabled: false

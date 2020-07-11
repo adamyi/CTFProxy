@@ -1,0 +1,34 @@
+load("@io_bazel_rules_docker//go:image.bzl", "go_image")
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+load("//:config.bzl", "CTF_DOMAIN")
+load("//tools:challenge.bzl", "ctf_challenge")
+
+ctf_challenge()
+
+go_image(
+    name = "image",
+    args = [
+        "-jwt_public_key",
+        "$(location //jwtkeys:jwtRS256.key.pub)",
+    ],
+    data = ["//jwtkeys:jwtRS256.key.pub"],
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)
+
+go_library(
+    name = "go_default_library",
+    srcs = ["main.go"],
+    importpath = "github.com/adamyi/CTFProxy/infra/whoami",
+    visibility = ["//visibility:private"],
+    x_defs = {
+        "ctf_domain": CTF_DOMAIN,
+    },
+    deps = ["@com_github_dgrijalva_jwt_go//:go_default_library"],
+)
+
+go_binary(
+    name = "whoami",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)

@@ -1,0 +1,17 @@
+<div class="devsite-header-upper-tabs">
+  <nav class="devsite-doc-set-nav devsite-nav devsite-overflow-tabs-scroll-wrapper">
+    <ul class="devsite-doc-set-nav-tab-list devsite-overflow-tabs-scroll" style="min-width: 448px; left: 0px;">
+      {% for tab in bookYaml.UpperTabs %}
+      <li class="devsite-doc-set-nav-tab-container">
+        {% if tab.LowerTabs.Other.0.Contents.0.Path %}
+        <a href="{{ tab.LowerTabs.Other.0.Contents.0.Path }}" class="devsite-doc-set-nav-tab devsite-doc-set-nav-active">
+        {% else %}
+        <a href="{{ tab.LowerTabs.Guides.0.Path }}" class="devsite-doc-set-nav-tab">
+        {% endif %}
+        {{ tab.Name }}
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+  </nav>
+</div>

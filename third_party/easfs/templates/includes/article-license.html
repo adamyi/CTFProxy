@@ -1,0 +1,17 @@
+<div class="devsite-content-footer nocontent">
+  <p>
+    Found a problem? Email ctfproxy@cse.unsw.edu.au
+  </p>
+  <p class="devsite-content-footer-date">
+  {% if publishDate %}
+    {% if updateDate and publishDate != updateDate %}
+      First pbulished {{ publishDate }}.
+      Last updated {{ updateDate }}.
+    {% else %}
+      Published {{ publishDate }}.
+    {% endif %}
+  {% elif updateDate %}
+    Last updated {{ updateDate }}.
+  {% endif %}
+  </p>
+</div>

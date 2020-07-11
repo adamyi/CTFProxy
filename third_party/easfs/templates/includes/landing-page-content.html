@@ -1,0 +1,37 @@
+{% for row in rows %}
+<section class="devsite-landing-row
+                {{ row.ClassName }} devsite-landing-row-{{ row.ItemCount }}-up
+                {% if row.Background %}devsite-background devsite-background-{{ row.Background }}{% endif %}">
+  {% if row.Heading %}
+  <header class="devsite-landing-row-header">
+    <div class="devsite-landing-row-header-text">
+      <h2 id="{{ row.Heading|slugify }}">{{ row.Heading|safe }}</h2>
+      {% if row.Description %}
+      <p class="devsite-landing-row-description">
+        {{ row.Description|safe }}
+      </p>
+      {% endif %}
+    </div>
+  </header>
+  {% endif %}
+  {% if row.CustomHTML %}
+    {{ row.CustomHTML|safe }}
+  {% else %}
+  <div class="devsite-landing-row-group">
+    {% if row.Columns %}
+      {% for col in row.Columns %}
+        <div class="devsite-landing-row-column">
+          {% for item in col.Items %}
+            {% include "landing-page-content-row.html" %}
+          {% endfor %}
+        </div>
+      {% endfor %}
+    {% else %}
+      {% for item in row.Items %}
+        {% include "landing-page-content-row.html" %}
+      {% endfor %}
+    {% endif %}
+  </div>
+  {% endif %}
+</section>
+{% endfor %}

@@ -1,0 +1,42 @@
+load("@io_bazel_rules_docker//go:image.bzl", "go_image")
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+load("//tools:challenge.bzl", "ctf_challenge")
+
+ctf_challenge()
+
+go_image(
+    name = "image",
+    args = [
+        "-dbtype",
+        "mysql",
+        # FIXME: configure dbaddr here
+        "-jwt_public_key",
+        "$(location //jwtkeys:jwtRS256.key.pub)",
+    ],
+    data = [
+        "//jwtkeys:jwtRS256.key.pub",
+    ],
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "auth.go",
+        "main.go",
+    ],
+    importpath = "github.com/adamyi/CTFProxy/infra/isodb",
+    visibility = ["//visibility:private"],
+    deps = [
+        "@com_github_bdwilliams_go_jsonify//jsonify:go_default_library",
+        "@com_github_dgrijalva_jwt_go//:go_default_library",
+        "@com_github_go_sql_driver_mysql//:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "isodb",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)

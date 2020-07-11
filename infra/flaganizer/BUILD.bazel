@@ -1,0 +1,48 @@
+load("@io_bazel_rules_docker//go:image.bzl", "go_image")
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+load("@io_bazel_rules_jsonnet//jsonnet:jsonnet.bzl", "jsonnet_to_json")
+load("//tools:challenge.bzl", "ctf_challenge")
+
+ctf_challenge()
+
+go_image(
+    name = "image",
+    args = [
+        "-jwt_public_key",
+        "$(location //jwtkeys:jwtRS256.key.pub)",
+        "-flag_config",
+        "infra/flaganizer/flags.json",
+        # FIXME: configure flag_key here
+    ],
+    data = [
+        ":flags",
+        "//jwtkeys:jwtRS256.key.pub",
+    ],
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)
+
+go_library(
+    name = "go_default_library",
+    srcs = ["main.go"],
+    importpath = "github.com/adamyi/CTFProxy/infra/flaganizer",
+    visibility = ["//visibility:private"],
+    deps = ["@com_github_dgrijalva_jwt_go//:go_default_library"],
+)
+
+go_binary(
+    name = "flaganizer",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)
+
+jsonnet_to_json(
+    name = "flags",
+    src = "flags.jsonnet",
+    outs = ["flags.json"],
+    deps = [
+        "//challenges:challenges_jsonnet",
+        "//infra:infra_jsonnet",
+        "//infra/jsonnet:utils",
+    ],
+)

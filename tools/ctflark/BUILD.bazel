@@ -1,0 +1,22 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+load("//:config.bzl", "CONTAINER_REGISTRY")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["main.go"],
+    importpath = "github.com/adamyi/CTFProxy/tools/ctflark",
+    visibility = ["//visibility:private"],
+    x_defs = {
+        "GCR_PREFIX": CONTAINER_REGISTRY + "/",
+    },
+    deps = [
+        "@com_github_bazelbuild_buildtools//build:go_default_library",
+        "@com_github_bmatcuk_doublestar//:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "ctflark",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)

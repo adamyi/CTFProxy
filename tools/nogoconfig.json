@@ -1,0 +1,45 @@
+{
+  "shadow": {
+    "exclude_files": {
+      "external/.*": "enforce this only on first-party code",
+      "infra/ctfproxy/config.go": "err shadow permitted",
+      "infra/ctfproxy/statusz.go": "err shadow permitted",
+      "infra/ctfproxy/websocket.go": "err shadow permitted"
+    }
+  },
+  "composites": {
+    "exclude_files": {
+      "external/.*": "enforce this only on first-party code"
+    }
+  },
+  "nilness": {
+    "exclude_files": {
+      "external/.*": "enforce this only on first-party code"
+    }
+  },
+  "unreachable": {
+    "exclude_files": {
+      "external/.*": "enforce this only on first-party code"
+    }
+  },
+  "copylocks": {
+    "exclude_files": {
+      "external/.*": "enforce this only on first-party code"
+    }
+  },
+  "stringintconv": {
+    "exclude_files": {
+      "external/.*": "enforce this only on first-party code"
+    }
+  },
+  "assign": {
+    "exclude_files": {
+      "external/.*": "enforce this only on first-party code"
+    }
+  },
+  "deepequalerrors": {
+    "exclude_files": {
+      "external/.*": "enforce this only on first-party code"
+    }
+  }
+}

@@ -1,0 +1,141 @@
+load("@bazel_tools//tools/build_defs/pkg:pkg.bzl", "pkg_tar")
+load("@io_bazel_rules_docker//container:container.bzl", "container_image")
+load("@io_bazel_rules_docker//go:image.bzl", "go_image")
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+load("@io_bazel_rules_jsonnet//jsonnet:jsonnet.bzl", "jsonnet_to_json")
+load("//:config.bzl", "CTF_DOMAIN")
+
+container_image(
+    name = "image",
+    base = ":image_base",
+    files = [
+        "//jwtkeys:jwtRS256.key",
+        "//jwtkeys:jwtRS256.key.pub",
+    ],
+    ports = [
+        "80",
+        "443",
+    ],
+    tars = [
+        ":templates",
+        ":certs",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+pkg_tar(
+    name = "templates",
+    srcs = glob(["templates/*"]),
+    mode = "0755",
+    strip_prefix = ".",
+)
+
+pkg_tar(
+    name = "certs",
+    srcs = glob([
+        "certs/*.pem",
+        "certs/*.key",
+    ]),
+    mode = "0755",
+    strip_prefix = ".",
+)
+
+go_image(
+    name = "image_base",
+    args = [
+        "-jwt_private_key",
+        "/jwtRS256.key",
+        "-jwt_public_key",
+        "/jwtRS256.key.pub",
+        # FIXME: configure ssl_cert, ssl_key, mtls_ca here
+        "-html_templates",
+        "/templates",
+        "-corp_domain",
+        CTF_DOMAIN,
+        "-login_subdomain",
+        "login",
+        "-clirelay_subdomain",
+        "cli-relay",
+        "-root_service_domain",
+        "www",
+        "-access_config_path",
+        "infra/ctfproxy/access.json",
+        "-alias_config_path",
+        "infra/ctfproxy/alias.json",
+        # FIXME: configure cert_gcs_bucket gcp_service_account gcp_project here
+    ],
+    data = [
+        ":access",
+        ":alias",
+    ],
+    embed = [":go_default_library"],
+)
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "access.go",
+        "auth.go",
+        "config.go",
+        "error.go",
+        "http.go",
+        "ip.go",
+        "logging.go",
+        "login.go",
+        "main.go",
+        "network.go",
+        "proxy.go",
+        "ssl.go",
+        "statusz.go",
+        "websocket.go",
+    ],
+    importpath = "github.com/adamyi/CTFProxy/infra/ctfproxy",
+    visibility = ["//visibility:private"],
+    x_defs = {
+        "github.com/adamyi/CTFProxy/infra/ctfproxy.BuildTimestamp": "{BUILD_TIMESTAMP}",
+        "github.com/adamyi/CTFProxy/infra/ctfproxy.Builder": "{STABLE_BUILDER}",
+        "github.com/adamyi/CTFProxy/infra/ctfproxy.GitCommit": "{STABLE_GIT_COMMIT}",
+        "github.com/adamyi/CTFProxy/infra/ctfproxy.GitVersion": "{STABLE_GIT_VERSION}",
+    },
+    deps = [
+        "//third_party/autocertcache:go_default_library",
+        "@com_github_adamyi_hotconfig//:go_default_library",
+        "@com_github_dgrijalva_jwt_go//:go_default_library",
+        "@com_github_go_sql_driver_mysql//:go_default_library",
+        "@com_github_google_uuid//:go_default_library",
+        "@com_github_gorilla_websocket//:go_default_library",
+        "@com_github_ulule_limiter_v3//:go_default_library",
+        "@com_github_ulule_limiter_v3//drivers/store/memory:go_default_library",
+        "@com_google_cloud_go_storage//:go_default_library",
+        "@net_starlark_go//starlark:go_default_library",
+        "@org_golang_google_api//option:go_default_library",
+        "@org_golang_x_crypto//acme/autocert:go_default_library",
+        "@org_golang_x_oauth2//google:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "ctfproxy",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)
+
+jsonnet_to_json(
+    name = "access",
+    src = "access.jsonnet",
+    outs = ["access.json"],
+    deps = [
+        "//infra/jsonnet:services",
+        "//infra/jsonnet:utils",
+    ],
+)
+
+jsonnet_to_json(
+    name = "alias",
+    src = "alias.jsonnet",
+    outs = ["alias.json"],
+    deps = [
+        "//infra/jsonnet:services",
+        "//infra/jsonnet:utils",
+    ],
+)

@@ -1,0 +1,47 @@
+<nav class="devsite-nav-responsive devsite-nav nocontent" tabindex="0">
+  <div class="devsite-nav-responsive-tabs-panel">
+    <nav class="devsite-nav-responsive-tabs devsite-nav">
+    <ul class="devsite-nav-list">
+      {% for tab in bookYaml.UpperTabs %}
+      <li class="devsite-nav-item devsite-nav-item-heading">
+        {% if tab.LowerTabs.Other.0.Contents.0.Path %}
+        <a href="{{ tab.LowerTabs.Other.0.Contents.0.Path  }}?nav=true"
+           class="devsite-nav-responsive-tab devsite-nav-active">
+          <span>{{ tab.Name }}</span>
+        </a>
+        {% if lowerTabs and lowerTabs|length > 1 %}
+        <nav class="devsite-nav-responsive-tabs devsite-nav">
+        <ul class="devsite-nav-list">
+          {% for ltab in lowerTabs %}
+          <li class="devsite-nav-item devsite-nav-item-heading">
+            {% if ltab.Selected %}
+            <span class="devsite-nav-responsive-forward devsite-nav-responsive-tab devsite-nav-title devsite-nav-active">
+              {{ ltab.Name }}
+            </span>
+            {% else %}
+            <a href="{{ ltab.Path }}?nav=true"
+               class="devsite-nav-responsive-tab devsite-nav-title">
+              <span>{{ ltab.Name }}</span>
+            </a>
+            {% endif %}
+          </li>
+          {% endfor %}
+        </ul>
+        </nav>
+        {% endif %}
+        {% else %}
+        <a href="{{ tab.LowerTabs.Guides.0.Path }}?nav=true"
+           class="devsite-nav-responsive-tab devsite-nav-title">
+          {{ tab.Name }}
+        </a>
+        {% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+    </nav>
+  </div>
+  <div class="devsite-nav-responsive-sidebar-panel devsite-nav-responsive-transition" style="display: none;">
+    <div class="devsite-nav-responsive-back" tabindex="0"></div>
+    {% include "page-nav-responsive-sidebar.html" %}
+  </div>
+</nav>
