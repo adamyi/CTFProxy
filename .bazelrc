@@ -1,0 +1,34 @@
+build --stamp --workspace_status_command=./tools/workspace-status.sh
+run --stamp --workspace_status_command=./tools/workspace-status.sh
+
+# Don't create bazel-* symlinks in the WORKSPACE directory, except `bazel-out`,
+# which is mandatory.
+# These require .gitignore and may scare users.
+#
+# Instead, the output will appear in `dist/bin`. You'll need to ignore the
+# `bazel-out` directory that is created in the workspace root.
+build --symlink_prefix=dist/
+
+# Turn off legacy external runfiles
+# This prevents accidentally depending on this feature, which Bazel will remove.
+build --nolegacy_external_runfiles
+
+# Turn on the "Managed Directories" feature.
+# This allows Bazel to share the same node_modules directory with other tools
+# NB: this option was introduced in Bazel 0.26
+# See https://docs.bazel.build/versions/master/command-line-reference.html#flag--experimental_allow_incremental_repository_updates
+common --experimental_allow_incremental_repository_updates
+
+# Disable sandbox on Mac OS for performance reason.
+build --spawn_strategy=local
+run --spawn_strategy=local
+test --spawn_strategy=local
+
+# The following flags are set to test use of new features for python toolchains
+build --incompatible_use_python_toolchains
+build --host_force_python=PY2
+test --incompatible_use_python_toolchains
+test --host_force_python=PY2
+run --incompatible_use_python_toolchains
+run --host_force_python=PY2
+
