@@ -11,6 +11,7 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/adamyi/CTFProxy/infra/ctfproxy/templates"
 )
 
 func verifyPassword(email, password string) bool {
@@ -34,10 +35,15 @@ func verifyPassword(email, password string) bool {
 	return r.StatusCode == 200
 }
 
+var loginTemplate *template.Template
+
+func init() {
+	loginTemplate = template.Must(template.New("login").Parse(templates.Data["login.html"]))
+}
+
 func handleLogin(rsp http.ResponseWriter, req *http.Request) {
 	if req.Method == "GET" {
-		tmpl := template.Must(template.ParseFiles(_configuration.HTMLTemplates + "/login.html"))
-		tmpl.Execute(rsp, "")
+		loginTemplate.Execute(rsp, "")
 	} else if req.Method == "POST" {
 		req.ParseForm()
 		username := strings.ToLower(req.Form.Get("username"))
@@ -47,8 +53,7 @@ func handleLogin(rsp http.ResponseWriter, req *http.Request) {
 		password := req.Form.Get("password")
 
 		if !verifyPassword(username, password) {
-			tmpl := template.Must(template.ParseFiles(_configuration.HTMLTemplates + "/login.html"))
-			tmpl.Execute(rsp, "Incorrect password")
+			loginTemplate.Execute(rsp, "Incorrect password")
 			return
 		}
 

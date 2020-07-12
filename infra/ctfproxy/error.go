@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"runtime/debug"
 	"strings"
+
+	"github.com/adamyi/CTFProxy/infra/ctfproxy/templates"
 )
 
 type UPError struct {
@@ -18,6 +20,12 @@ type UPError struct {
 	InternalDebug string
 	Debug         template.HTML
 	Code          int
+}
+
+var errorTemplate *template.Template
+
+func init() {
+	errorTemplate = template.Must(template.New("error").Parse(templates.Data["error.html"]))
 }
 
 func NewUPError(code int, title, description, publicDebug, internalDebug string) *UPError {
@@ -36,8 +44,7 @@ func returnError(err *UPError, rsp http.ResponseWriter) {
 		dbgstr += "\n===Internal Debug Info because you're in ctfproxy-debug@===\n" + err.InternalDebug
 	}
 	err.Debug = template.HTML(strings.Replace(html.EscapeString(dbgstr), "\n", "<br>\n", -1))
-	tmpl := template.Must(template.ParseFiles(_configuration.HTMLTemplates + "/error.html"))
-	tmpl.Execute(rsp, err)
+	errorTemplate.Execute(rsp, err)
 }
 
 func WrapHandlerWithRecovery(wrappedHandler http.Handler) http.Handler {

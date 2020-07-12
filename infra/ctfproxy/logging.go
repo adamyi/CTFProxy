@@ -74,7 +74,7 @@ func WrapHandlerWithLogging(wrappedHandler http.Handler) http.Handler {
 		}
 		entry.Response.Body = buf.String()
 		// entry.Response.Header = lrw.Header()
-		entry.Latency = time.Now().Unix() - t.Unix()
+		entry.Latency = (time.Now().UnixNano() - t.UnixNano()) / (int64(time.Millisecond) / int64(time.Nanosecond))
 		log.Printf("%v %v - %v - %v %v%v [%vms]\n", entry.ClientIP, entry.Response.Header.Get("X-CTFProxy-I-User"), entry.Response.StatusCode, entry.Request.Method, entry.Host, entry.Request.URI, entry.Latency)
 		go func() {
 			estr, _ := json.Marshal(entry)

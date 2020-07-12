@@ -17,17 +17,9 @@ container_image(
         "443",
     ],
     tars = [
-        ":templates",
         ":certs",
     ],
     visibility = ["//visibility:public"],
-)
-
-pkg_tar(
-    name = "templates",
-    srcs = glob(["templates/*"]),
-    mode = "0755",
-    strip_prefix = ".",
 )
 
 pkg_tar(
@@ -48,8 +40,6 @@ go_image(
         "-jwt_public_key",
         "/jwtRS256.key.pub",
         # FIXME: configure ssl_cert, ssl_key, mtls_ca here. See config.go for more optional configuration
-        "-html_templates",
-        "/templates",
         "-corp_domain",
         CTF_DOMAIN,
         "-login_subdomain",
@@ -98,6 +88,7 @@ go_library(
         "github.com/adamyi/CTFProxy/infra/ctfproxy.GitVersion": "{STABLE_GIT_VERSION}",
     },
     deps = [
+        "//infra/ctfproxy/templates:go_default_library",
         "//third_party/autocertcache:go_default_library",
         "@com_github_adamyi_hotconfig//:go_default_library",
         "@com_github_dgrijalva_jwt_go//:go_default_library",

@@ -1,0 +1,18 @@
+load("@io_bazel_rules_go//extras:embed_data.bzl", "go_embed_data")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_embed_data(
+    name = "templates",
+    srcs = glob(["*.html"]),
+    flatten = True,
+    package = "templates",
+    string = True,
+)
+
+# keep
+go_library(
+    name = "go_default_library",
+    srcs = [":templates"],
+    importpath = "github.com/adamyi/CTFProxy/infra/ctfproxy/templates",
+    visibility = ["//infra/ctfproxy:__pkg__"],
+)

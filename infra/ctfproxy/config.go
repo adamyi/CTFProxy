@@ -37,7 +37,6 @@ type Configuration struct {
 	SSLPrivateKeys         flagArray
 	RawServices            flagArray
 	RawServicesMap         map[string]bool
-	HTMLTemplates          string
 	MTLSCA                 string
 	SignKey                *rsa.PrivateKey
 	VerifyKey              *rsa.PublicKey
@@ -109,7 +108,6 @@ func readConfig() {
 	flag.Var(&_configuration.SSLPrivateKeys, "ssl_key", "HTTPS certificate private key")
 	flag.Var(&_configuration.RawServices, "raw_services", "Internal services to disable CTFProxy headers and URL cleaning")
 	flag.StringVar(&_configuration.MTLSCA, "mtls_ca", "", "Path to MTLS Certificate Authority")
-	flag.StringVar(&_configuration.HTMLTemplates, "html_templates", "", "Path to CTFProxy's HTML templates")
 	flag.StringVar(&publicKeyPath, "jwt_public_key", "", "Path to JWT public key")
 	flag.StringVar(&privateKeyPath, "jwt_private_key", "", "Path to JWT private key")
 	flag.StringVar(&accessPath, "access_config_path", "", "Path to access policy config")
