@@ -31,14 +31,14 @@ func initRateLimit() {
 
 func init() {
 	zmux = http.NewServeMux()
-	zmux.HandleFunc("/ipz", func(w http.ResponseWriter, req *http.Request) {
-		fmt.Fprintf(w, "%v", req.RemoteAddr)
+	zmux.HandleFunc("/ipz", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, "%v", r.RemoteAddr)
 	})
-	zmux.HandleFunc("/testpanic", func(w http.ResponseWriter, req *http.Request) {
-		panic(req)
+	zmux.HandleFunc("/testpanic", func(w http.ResponseWriter, r *http.Request) {
+		panic(r)
 	})
 	zmux.HandleFunc("/statusz", StatusHandler)
-	zmux.HandleFunc("/debug/gc", func(w http.ResponseWriter, req *http.Request) {
+	zmux.HandleFunc("/debug/gc", func(w http.ResponseWriter, r *http.Request) {
 		runtime.GC()
 		w.Write([]byte("done"))
 	})
@@ -47,8 +47,8 @@ func init() {
 	zmux.HandleFunc("/debug/pprof/profile", pprof.Profile)
 	zmux.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
 	zmux.HandleFunc("/debug/pprof/trace", pprof.Trace)
-	zmux.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
-		returnError(NewUPError(http.StatusNotFound, "404 Not Found", "The requested URL does not exist.", "", "ZDomain 404"), w)
+	zmux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		NewCPError(http.StatusNotFound, "404 Not Found", "The requested URL does not exist.", "", "ZDomain 404").Write(w)
 	})
 }
 
@@ -76,7 +76,7 @@ func handleUP(rsp http.ResponseWriter, req *http.Request) {
 
 	username, displayname, err := getUsername(req)
 	if err != nil {
-		returnError(NewUPError(http.StatusBadRequest, "You issued a malformed request", "failed to get username", "", err.Error()), rsp)
+		NewCPError(http.StatusBadRequest, "You issued a malformed request", "failed to get username", "", err.Error()).Write(rsp)
 		return
 	}
 	remoteIP := strings.Split(req.RemoteAddr, ":")[0]
@@ -87,12 +87,12 @@ func handleUP(rsp http.ResponseWriter, req *http.Request) {
 	if !strings.HasSuffix(username, "@services."+_configuration.CorpDomain) {
 		limit, errr := _limiter.Get(req.Context(), remoteIP+"_"+username)
 		if errr != nil {
-			returnError(NewUPError(http.StatusInternalServerError, "Internal Server Error", "Please notify course staff", "", errr.Error()), rsp)
+			NewCPError(http.StatusInternalServerError, "Internal Server Error", "Please notify course staff", "", errr.Error()).Write(rsp)
 			return
 		}
 
 		if limit.Reached {
-			returnError(NewUPError(420, "420 Enhance Your Calm", "Calm down!!! You're sending requests too fast", "", "rate limited"), rsp)
+			NewCPError(420, "420 Enhance Your Calm", "Calm down!!! You're sending requests too fast", "", "rate limited").Write(rsp)
 			return
 		}
 	}
@@ -113,7 +113,7 @@ func handleUP(rsp http.ResponseWriter, req *http.Request) {
 			return
 		}
 		if !dbg {
-			returnError(NewUPError(http.StatusForbidden, "403 Forbidden", "This is a debug-only URL", "", ""), rsp)
+			NewCPError(http.StatusForbidden, "403 Forbidden", "This is a debug-only URL", "", "").Write(rsp)
 			return
 		}
 		zmux.ServeHTTP(rsp, req)
@@ -123,7 +123,7 @@ func handleUP(rsp http.ResponseWriter, req *http.Request) {
 	ctx, levelShift, err := getNetworkContext(req, username)
 	if err != nil {
 		// fmt.Println("getNetowrkContext - ", levelShift, err)
-		returnError(NewUPError(http.StatusBadRequest, "Could not resolve the IP address for host "+req.Host, "Your client has issued a malformed or illegal request.", "", "getNetworkContext: "+err.Error()), rsp)
+		NewCPError(http.StatusBadRequest, "Could not resolve the IP address for host "+req.Host, "Your client has issued a malformed or illegal request.", "", "getNetworkContext: "+err.Error()).Write(rsp)
 		return
 	}
 	if ra := ctx.Value("up_real_addr"); ra != nil {
@@ -135,7 +135,7 @@ func handleUP(rsp http.ResponseWriter, req *http.Request) {
 
 	servicename, err := getServiceNameFromDomain(req.Host)
 	if err != nil {
-		returnError(NewUPError(http.StatusBadRequest, "Could not resolve the IP address for host "+req.Host, "Your client has issued a malformed or illegal request.", "", "getServiceNameFromDomain: "+err.Error()), rsp)
+		NewCPError(http.StatusBadRequest, "Could not resolve the IP address for host "+req.Host, "Your client has issued a malformed or illegal request.", "", "getServiceNameFromDomain: "+err.Error()).Write(rsp)
 		return
 	}
 
@@ -144,7 +144,7 @@ func handleUP(rsp http.ResponseWriter, req *http.Request) {
 		if ae.Code == http.StatusForbidden && username == "anonymous@anonymous."+_configuration.CorpDomain {
 			http.Redirect(rsp, req, "https://"+_configuration.LoginDomain+"/?return_url="+url.QueryEscape("https://"+full_url), http.StatusTemporaryRedirect)
 		} else {
-			returnError(ae, rsp)
+			ae.Write(rsp)
 		}
 		return
 	}
@@ -169,13 +169,13 @@ func handleUP(rsp http.ResponseWriter, req *http.Request) {
 	ptoken := jwt.NewWithClaims(jwt.SigningMethodRS256, pclaims)
 	ptstr, err = ptoken.SignedString(_configuration.SignKey)
 	if err != nil {
-		returnError(NewUPError(http.StatusInternalServerError, "Internal Server Error", "Something went wrong while generating JWT", "", err.Error()), rsp)
+		NewCPError(http.StatusInternalServerError, "Internal Server Error", "Something went wrong while generating JWT", "", err.Error()).Write(rsp)
 		return
 	}
 
 	/*
 		NOTES(adamyi@): disabled due to info leak
-		trivially fix this by moving the upstream UPError handling logic to middleware
+		trivially fix this by moving the upstream CPError handling logic to middleware
 		reenable this with care if websocket is needed
 		if req.URL.Path == "/ws" {
 			handleWs(ctx, rsp, req, ptstr, levelShift)
@@ -193,7 +193,7 @@ func handleUP(rsp http.ResponseWriter, req *http.Request) {
 
 	preq, err := http.NewRequestWithContext(ctx, req.Method, scheme+full_url, bytes.NewReader(bodyBytes))
 	if err != nil {
-		returnError(NewUPError(http.StatusBadGateway, "Bad Gateway", "Something went wrong connecting to internal service", "", "http.NewRequestWithContext ("+req.Method+" "+scheme+full_url+"): "+err.Error()), rsp)
+		NewCPError(http.StatusBadGateway, "Bad Gateway", "Something went wrong connecting to internal service", "", "http.NewRequestWithContext ("+req.Method+" "+scheme+full_url+"): "+err.Error()).Write(rsp)
 		return
 	}
 
@@ -238,11 +238,11 @@ func handleUP(rsp http.ResponseWriter, req *http.Request) {
 	}
 	presp, err := client.Do(preq)
 	if err != nil {
-		returnError(NewUPError(http.StatusBadGateway, "Bad Gateway", "Something went wrong connecting to internal service", "", "client.Do("+req.Method+" "+scheme+full_url+"): "+err.Error()), rsp)
+		NewCPError(http.StatusBadGateway, "Bad Gateway", "Something went wrong connecting to internal service", "", "client.Do("+req.Method+" "+scheme+full_url+"): "+err.Error()).Write(rsp)
 		return
 	}
 	if presp.Header.Get("Content-Type") == "ctfproxy/error" {
-		handleUpstreamUPError(rsp, presp)
+		handleUpstreamCPError(rsp, presp)
 		return
 	}
 	copyResponse(rsp, presp)

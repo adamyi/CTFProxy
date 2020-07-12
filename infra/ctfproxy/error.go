@@ -13,11 +13,12 @@ import (
 	"github.com/adamyi/CTFProxy/infra/ctfproxy/templates"
 )
 
-type UPError struct {
+type CPError struct {
 	Title         string
 	Description   string
 	PublicDebug   string
 	InternalDebug string
+	Type          string
 	Debug         template.HTML
 	Code          int
 }
@@ -28,23 +29,28 @@ func init() {
 	errorTemplate = template.Must(template.New("error").Parse(templates.Data["error.html"]))
 }
 
-func NewUPError(code int, title, description, publicDebug, internalDebug string) *UPError {
-	ret := &UPError{Code: code, Title: title, Description: description, PublicDebug: publicDebug, InternalDebug: internalDebug}
+func (e *CPError) SetType(t string) {
+	e.Type = t
+}
+
+func NewCPError(code int, title, description, publicDebug, internalDebug string) *CPError {
+	ret := &CPError{Code: code, Title: title, Description: description, PublicDebug: publicDebug, InternalDebug: internalDebug}
 	ret.InternalDebug += "\n\n===CTFProxy Stack Trace===\n" + string(debug.Stack())
+	ret.Type = "cp"
 	return ret
 }
 
-func returnError(err *UPError, rsp http.ResponseWriter) {
-	if err.Code >= 300 && err.Code < 400 {
-		rsp.Header().Add("Location", err.Description)
+func (e CPError) Write(w http.ResponseWriter) {
+	if e.Code >= 300 && e.Code < 400 {
+		w.Header().Add("Location", e.Description)
 	}
-	rsp.WriteHeader(err.Code)
-	dbgstr := err.PublicDebug
-	if rsp.Header().Get("X-CTFProxy-I-Debug") == "1" {
-		dbgstr += "\n===Internal Debug Info because you're in ctfproxy-debug@===\n" + err.InternalDebug
+	w.WriteHeader(e.Code)
+	dbgstr := e.PublicDebug
+	if w.Header().Get("X-CTFProxy-I-Debug") == "1" {
+		dbgstr += "\n===Internal Debug Info because you're in ctfproxy-debug@===\n" + e.InternalDebug
 	}
-	err.Debug = template.HTML(strings.Replace(html.EscapeString(dbgstr), "\n", "<br>\n", -1))
-	errorTemplate.Execute(rsp, err)
+	e.Debug = template.HTML(strings.Replace(html.EscapeString(dbgstr), "\n", "<br>\n", -1))
+	errorTemplate.Execute(w, e)
 }
 
 func WrapHandlerWithRecovery(wrappedHandler http.Handler) http.Handler {
@@ -54,19 +60,20 @@ func WrapHandlerWithRecovery(wrappedHandler http.Handler) http.Handler {
 			if err != nil {
 				log.Println("[PANIC RECOVERY TRIGGERED] something terrible happened.")
 				log.Println(err)
-				returnError(NewUPError(http.StatusInternalServerError, "Server Internal Error", "Something went terribly wrong...", "", fmt.Sprintf("===panic recovery===\n%v", err)), w)
+				NewCPError(http.StatusInternalServerError, "Server Internal Error", "Something went terribly wrong...", "", fmt.Sprintf("===panic recovery===\n%v", err)).Write(w)
 			}
 		}()
 		wrappedHandler.ServeHTTP(w, r)
 	})
 }
 
-func handleUpstreamUPError(rw http.ResponseWriter, resp *http.Response) {
+func handleUpstreamCPError(rw http.ResponseWriter, resp *http.Response) {
 	defer resp.Body.Close()
-	var e UPError
+	var e CPError
 	err := json.NewDecoder(resp.Body).Decode(&e)
 	if err != nil {
-		e = *NewUPError(http.StatusInternalServerError, "Server Internal Error", "Something went wrong with the service, please try again later", "", "upstream service returned ctfproxy/uperror but failed to decode UPError json "+err.Error())
+		e = *NewCPError(http.StatusInternalServerError, "Server Internal Error", "Something went wrong with the service, please try again later", "", "upstream service returned ctfproxy/uperror but failed to decode CPError json "+err.Error())
 	}
-	returnError(&e, rw)
+	e.SetType("s")
+	e.Write(rw)
 }
