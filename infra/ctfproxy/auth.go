@@ -28,6 +28,10 @@ var SubAccValid = regexp.MustCompile(`^[a-zA-Z.0-9\-_]+$`).MatchString
 // then displayname
 func getUsername(req *http.Request) (string, string, error) {
 	username, displayname := getMainUsername(req)
+	// disable impersonation/subacc for players. Only allow services to do this for now
+	if strings.Split(username, "@")[1] == _configuration.CorpDomain {
+		return username, displayname, nil
+	}
 	var impersonateToken string
 	if impersonateToken = req.Header.Get(_configuration.ImpersonateTokenHeader); impersonateToken != "" {
 		impUsername, _ := getUsernameFromJWT(impersonateToken, username)
@@ -38,7 +42,8 @@ func getUsername(req *http.Request) (string, string, error) {
 	}
 	subacc := req.Header.Get(_configuration.SubAccHeader)
 	if subacc != "" {
-		if !(SubAccValid(subacc) && len(subacc) < 10) {
+		if !(SubAccValid(subacc) &&
+			(_configuration.SubAccLengthLimit == -1 || len(subacc) < _configuration.SubAccLengthLimit)) {
 			return "", "", errors.New("invalid subacc")
 		}
 		s := strings.Split(username, "@")

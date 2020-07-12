@@ -47,7 +47,7 @@ go_image(
         "/jwtRS256.key",
         "-jwt_public_key",
         "/jwtRS256.key.pub",
-        # FIXME: configure ssl_cert, ssl_key, mtls_ca here
+        # FIXME: configure ssl_cert, ssl_key, mtls_ca here. See config.go for more optional configuration
         "-html_templates",
         "/templates",
         "-corp_domain",

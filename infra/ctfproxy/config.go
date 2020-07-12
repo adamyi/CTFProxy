@@ -56,6 +56,7 @@ type Configuration struct {
 	GCPProject             string
 	CertBucket             string
 	RateLimit              string
+	SubAccLengthLimit      int
 	ConfigFetchInterval    time.Duration
 	AccessPolicies         *hotconfig.Config
 	ServiceAliases         *hotconfig.Config
@@ -127,6 +128,7 @@ func readConfig() {
 	flag.StringVar(&_configuration.CertBucket, "cert_gcs_bucket", "", "GCS bucket for autocert cache")
 	flag.StringVar(&_configuration.GCPProject, "gcp_project", "", "GCP Project")
 	flag.StringVar(&_configuration.RateLimit, "rate_limit", "1000-M", "rate limit")
+	flag.IntVar(&_configuration.SubAccLengthLimit, "subacc_length_limit", 10, "length limit for subacc (-1) to disable")
 	flag.StringVar(&gcpcredPath, "gcp_service_account", "", "GCP service account json")
 	flag.StringVar(&fetchInterval, "config_fetch_interval", "1m", "Config fetch interval")
 	flag.Parse()
