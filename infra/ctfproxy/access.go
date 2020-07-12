@@ -8,18 +8,55 @@ import (
 	"time"
 )
 
+var (
+	aclAstCache     map[string]*starlark.Program
+	aclAstCacheTime int64
+	predefinedSet   map[string]bool
+)
+
+func aclAstExpireCache(lutime int64) {
+	if aclAstCacheTime != lutime {
+		aclAstCacheTime = lutime
+		aclAstCache = make(map[string]*starlark.Program)
+	}
+}
+
+func init() {
+	predefinedSet = make(map[string]bool)
+	pdv := []string{"host", "method", "path", "rawpath", "query", "ip", "user", "corpDomain", "groups", "timestamp", "grantAccess", "openAccess", "denyAccess"}
+	for _, v := range pdv {
+		predefinedSet[v] = true
+	}
+}
+
+func isPredeclared(token string) bool {
+	return predefinedSet[token]
+}
+
 func hasAccess(servicename, username string, groups []string, req *http.Request) *UPError {
+	var err error
 	for _, g := range groups {
 		if g == "break-glass-access@groups."+_configuration.CorpDomain {
 			return nil
 		}
 	}
-	code := _configuration.AccessPolicies.ConfigOrNil().(map[string]string)[servicename]
-	if code == "" {
-		return NewUPError(http.StatusBadRequest, "Could not resolve the IP address for host "+req.Host, "Your client has issued a malformed or illegal request.", "", "_configuration.AccessPolicies["+servicename+"] not found")
+	aclAstExpireCache(_configuration.AccessPolicies.LastUpdated().Unix())
+	prog := aclAstCache[servicename]
+
+	// lazy compile AST
+	if prog == nil {
+		code := _configuration.AccessPolicies.ConfigOrNil().(map[string]string)[servicename]
+		if code == "" {
+			return NewUPError(http.StatusBadRequest, "Could not resolve the IP address for host "+req.Host, "Your client has issued a malformed or illegal request.", "", "_configuration.AccessPolicies["+servicename+"] not found")
+		}
+		log.Printf("lazy compiling %s_access.star", servicename)
+		_, prog, err = starlark.SourceProgram(servicename+"_access.star", code, isPredeclared)
+		if err != nil {
+			return NewUPError(http.StatusInternalServerError, "Error happened while determining access rights", "contact course staff if you believe this shouldn't happen", "", err.Error())
+		}
+		aclAstCache[servicename] = prog
 	}
-	// log.Println(servicename)
-	// log.Println(code)
+
 	thread := &starlark.Thread{
 		Name: "access",
 		Print: func(_ *starlark.Thread, msg string) {
@@ -75,7 +112,8 @@ func hasAccess(servicename, username string, groups []string, req *http.Request)
 		"denyAccess":  starlark.NewBuiltin("denyAccess", denyAccess),
 	}
 	go func() {
-		_, err := starlark.ExecFile(thread, servicename+"_access.star", code, predeclared)
+		g, err := prog.Init(thread, predeclared)
+		g.Freeze()
 		e := NewUPError(http.StatusForbidden, "403 Forbidden", "Contact course staff if you believe you should have access", "", servicename+"_access.star returned without granting access, default denial")
 		if err != nil {
 			if err.Error() == "ctfproxy: returned" {
