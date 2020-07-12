@@ -1,11 +1,13 @@
 package main
 
 import (
+	"crypto/md5"
 	"crypto/rsa"
 	"database/sql"
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"math/rand"
@@ -65,6 +67,21 @@ func returnError(w http.ResponseWriter, err error) {
 	fmt.Fprintf(w, "%s", err.Error())
 }
 
+// if name is shorter than length, return name
+// otherwise hash it to a shorter name
+func ensureNameLength(name string, length int) string {
+	if len(name) <= length {
+		return name
+	}
+	h := md5.New()
+	io.WriteString(h, name)
+	hash := fmt.Sprintf("%x", h.Sum(nil))
+	if len(hash) > length {
+		return hash[:length]
+	}
+	return hash
+}
+
 func initDbConn(name, main string) (*sql.DB, error) {
 	dblock.Lock()
 	defer dblock.Unlock()
@@ -73,7 +90,7 @@ func initDbConn(name, main string) (*sql.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	name = "isodb_" + name + "_" + version
+	name = "isodb_" + ensureNameLength(name, 57-len(version)) + "_" + version
 	err = _db.QueryRow("SELECT credentials FROM instancedb WHERE service=?", name).Scan(&cred)
 	switch {
 	case err == sql.ErrNoRows:
