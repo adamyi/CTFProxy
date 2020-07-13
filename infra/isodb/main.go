@@ -1,8 +1,8 @@
 package main
 
 import (
+	"crypto/ed25519"
 	"crypto/md5"
-	"crypto/rsa"
 	"database/sql"
 	"encoding/json"
 	"flag"
@@ -17,8 +17,8 @@ import (
 	"time"
 
 	"github.com/bdwilliams/go-jsonify/jsonify"
-	"github.com/dgrijalva/jwt-go"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/adamyi/CTFProxy/third_party/eddsa"
 )
 
 var _db *sql.DB
@@ -32,7 +32,7 @@ type Configuration struct {
 	DbHost        string
 	DbUser        string
 	DbName        string
-	VerifyKey     *rsa.PublicKey
+	VerifyKey     *ed25519.PublicKey
 }
 
 type InitRequest struct {
@@ -229,7 +229,7 @@ func readConfig() {
 	if err != nil {
 		panic(err)
 	}
-	_configuration.VerifyKey, err = jwt.ParseRSAPublicKeyFromPEM(JwtPubKey)
+	_configuration.VerifyKey, err = eddsa.ParseEdPublicKeyFromPEM(JwtPubKey)
 	if err != nil {
 		panic(err)
 	}

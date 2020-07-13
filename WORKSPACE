@@ -7,10 +7,10 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
     name = "io_bazel_rules_go",
-    sha256 = "87f0fb9747854cb76a0a82430adccb6269f7d394237104a4523b51061c469171",
+    sha256 = "a8d6b1b354d371a646d2f7927319974e0f9e52f73a2452d2b3877118169eb6bb",
     urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.23.1/rules_go-v0.23.1.tar.gz",
-        "https://github.com/bazelbuild/rules_go/releases/download/v0.23.1/rules_go-v0.23.1.tar.gz",
+        "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.23.3/rules_go-v0.23.3.tar.gz",
+        "https://github.com/bazelbuild/rules_go/releases/download/v0.23.3/rules_go-v0.23.3.tar.gz",
     ],
 )
 
@@ -74,9 +74,9 @@ http_archive(
     url = "https://github.com/bazelbuild/rules_python/releases/download/0.0.2/rules_python-0.0.2.tar.gz",
 )
 
-RULES_NODEJS_VERSION = "0.39.0"
+RULES_NODEJS_VERSION = "1.7.0"
 
-RULES_NODEJS_SHA256 = "26c39450ce2d825abee5583a43733863098ed29d3cbaebf084ebaca59a21a1c8"
+RULES_NODEJS_SHA256 = "84abf7ac4234a70924628baa9a73a5a5cbad944c4358cf9abdb4aab29c9a5b77"
 
 http_archive(
     name = "build_bazel_rules_nodejs",
@@ -420,24 +420,12 @@ go_repository(
     importpath = "github.com/adamyi/hotconfig",
 )
 
-load("@build_bazel_rules_nodejs//:defs.bzl", "node_repositories", "yarn_install")
+load("@build_bazel_rules_nodejs//:index.bzl", "yarn_install")
 
 yarn_install(
     name = "npm",
     package_json = "//:package.json",
     yarn_lock = "//:yarn.lock",
-)
-
-# Setup the Node repositories. We need a NodeJS version that is more recent than v10.15.0
-# because "selenium-webdriver" which is required for "ng e2e" cannot be installed.
-# TODO: remove the custom repositories once "rules_nodejs" supports v10.16.0 by default.
-node_repositories(
-    node_repositories = {
-        "10.16.0-darwin_amd64": ("node-v10.16.0-darwin-x64.tar.gz", "node-v10.16.0-darwin-x64", "6c009df1b724026d84ae9a838c5b382662e30f6c5563a0995532f2bece39fa9c"),
-        "10.16.0-linux_amd64": ("node-v10.16.0-linux-x64.tar.xz", "node-v10.16.0-linux-x64", "1827f5b99084740234de0c506f4dd2202a696ed60f76059696747c34339b9d48"),
-        "10.16.0-windows_amd64": ("node-v10.16.0-win-x64.zip", "node-v10.16.0-win-x64", "aa22cb357f0fb54ccbc06b19b60e37eefea5d7dd9940912675d3ed988bf9a059"),
-    },
-    node_version = "10.16.0",
 )
 
 load("@rules_python//python:pip.bzl", "pip_import")
@@ -452,9 +440,9 @@ http_archive(
 http_archive(
     name = "ctfd",
     build_file = "@//third_party/ctfd:ctfd.BUILD",
-    sha256 = "5278e73ff9c1a7e6544d9d9d2213ed26f60b1ba3c9e1fc3c8dd827543f3d1508",
-    strip_prefix = "CTFd-1f2ce3bc5e93fa34c7b60cfbcc43443d85589301",
-    url = "https://github.com/secedu/CTFd/archive/1f2ce3bc5e93fa34c7b60cfbcc43443d85589301.zip",
+    sha256 = "b9258a65f72843a04a45002e94f7e7f95b187c46321e333537c05985c57612eb",
+    strip_prefix = "CTFd-1503a290329c47896196c78d98daa7bedf3ab09d",
+    url = "https://github.com/secedu/CTFd/archive/1503a290329c47896196c78d98daa7bedf3ab09d.zip",
 )
 
 # Local copy of CTFd, for local debugging purposes

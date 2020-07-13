@@ -47,7 +47,7 @@ container_image(
         "UPLOAD_FOLDER": "/data/upload",
     },
     files = [
-        "//jwtkeys:jwtRS256.key.pub",
+        "//jwtkeys:jwt.pub",
         "//third_party/ctfd:manage.py",
     ],
     symlinks = {

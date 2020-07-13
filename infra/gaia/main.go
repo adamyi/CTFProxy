@@ -1,7 +1,7 @@
 package main
 
 import (
-	"crypto/rsa"
+	"crypto/ed25519"
 	"database/sql"
 	"encoding/json"
 	"flag"
@@ -10,8 +10,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/dgrijalva/jwt-go"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/adamyi/CTFProxy/third_party/eddsa"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -22,7 +22,7 @@ type Configuration struct {
 	ListenAddress string
 	DbType        string
 	DbAddress     string
-	VerifyKey     *rsa.PublicKey
+	VerifyKey     *ed25519.PublicKey
 }
 
 var _configuration = Configuration{}
@@ -163,7 +163,7 @@ func readConfig() {
 	if err != nil {
 		panic(err)
 	}
-	_configuration.VerifyKey, err = jwt.ParseRSAPublicKeyFromPEM(JwtPubKey)
+	_configuration.VerifyKey, err = eddsa.ParseEdPublicKeyFromPEM(JwtPubKey)
 	if err != nil {
 		panic(err)
 	}

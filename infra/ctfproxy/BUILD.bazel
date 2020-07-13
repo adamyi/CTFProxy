@@ -9,8 +9,8 @@ container_image(
     name = "image",
     base = ":image_base",
     files = [
-        "//jwtkeys:jwtRS256.key",
-        "//jwtkeys:jwtRS256.key.pub",
+        "//jwtkeys:jwt.key",
+        "//jwtkeys:jwt.pub",
     ],
     ports = [
         "80",
@@ -36,9 +36,9 @@ go_image(
     name = "image_base",
     args = [
         "-jwt_private_key",
-        "/jwtRS256.key",
+        "/jwt.key",
         "-jwt_public_key",
-        "/jwtRS256.key.pub",
+        "/jwt.pub",
         # FIXME: configure ssl_cert, ssl_key, mtls_ca here. See config.go for more optional configuration
         "-corp_domain",
         CTF_DOMAIN,
@@ -90,6 +90,7 @@ go_library(
     deps = [
         "//infra/ctfproxy/templates:go_default_library",
         "//third_party/autocertcache:go_default_library",
+        "//third_party/eddsa:go_default_library",
         "@com_github_adamyi_hotconfig//:go_default_library",
         "@com_github_dgrijalva_jwt_go//:go_default_library",
         "@com_github_go_sql_driver_mysql//:go_default_library",

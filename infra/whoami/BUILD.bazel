@@ -9,9 +9,9 @@ go_image(
     name = "image",
     args = [
         "-jwt_public_key",
-        "$(location //jwtkeys:jwtRS256.key.pub)",
+        "$(location //jwtkeys:jwt.pub)",
     ],
-    data = ["//jwtkeys:jwtRS256.key.pub"],
+    data = ["//jwtkeys:jwt.pub"],
     embed = [":go_default_library"],
     visibility = ["//visibility:public"],
 )
@@ -24,7 +24,10 @@ go_library(
     x_defs = {
         "ctf_domain": CTF_DOMAIN,
     },
-    deps = ["@com_github_dgrijalva_jwt_go//:go_default_library"],
+    deps = [
+        "//third_party/eddsa:go_default_library",
+        "@com_github_dgrijalva_jwt_go//:go_default_library",
+    ],
 )
 
 go_binary(

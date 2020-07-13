@@ -16,7 +16,7 @@ container_image(
         "TASKTIMEOUT": "90000",
     },
     files = [
-        "//jwtkeys:jwtRS256.key.pub",
+        "//jwtkeys:jwt.pub",
     ],
     tars = [
         "@chromium",

@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/adamyi/CTFProxy/third_party/eddsa"
 )
 
 type Claims struct {
@@ -23,7 +24,7 @@ func slugify(s string) string {
 func getUsername(tknStr string) (string, string, error) {
 	claims := &Claims{}
 
-	p := jwt.Parser{ValidMethods: []string{jwt.SigningMethodRS256.Name}}
+	p := jwt.Parser{ValidMethods: []string{eddsa.SigningMethodEdDSA.Alg()}}
 	tkn, err := p.ParseWithClaims(tknStr, claims, func(token *jwt.Token) (interface{}, error) {
 		return _configuration.VerifyKey, nil
 	})

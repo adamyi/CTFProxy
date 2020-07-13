@@ -1,9 +1,9 @@
 package main
 
 import (
+	"crypto/ed25519"
 	"crypto/hmac"
 	"crypto/md5"
-	"crypto/rsa"
 	"encoding/base64"
 	"encoding/json"
 	"flag"
@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/adamyi/CTFProxy/third_party/eddsa"
 )
 
 type Flag struct {
@@ -38,7 +39,7 @@ type VerificationResponse struct {
 type Configuration struct {
 	ListenAddress string
 	FlagKey       string
-	VerifyKey     *rsa.PublicKey
+	VerifyKey     *ed25519.PublicKey
 }
 
 type Claims struct {
@@ -70,7 +71,7 @@ func readConfig() {
 	if err != nil {
 		panic(err)
 	}
-	_configuration.VerifyKey, err = jwt.ParseRSAPublicKeyFromPEM(JwtPubKey)
+	_configuration.VerifyKey, err = eddsa.ParseEdPublicKeyFromPEM(JwtPubKey)
 	if err != nil {
 		panic(err)
 	}
@@ -139,7 +140,7 @@ func GenerateFlag(rsp http.ResponseWriter, req *http.Request) {
 
 	claims := &Claims{}
 
-	p := jwt.Parser{ValidMethods: []string{jwt.SigningMethodRS256.Name}}
+	p := jwt.Parser{ValidMethods: []string{eddsa.SigningMethodEdDSA.Alg()}}
 	tkn, err := p.ParseWithClaims(tknStr, claims, func(token *jwt.Token) (interface{}, error) {
 		return _configuration.VerifyKey, nil
 	})
@@ -181,7 +182,7 @@ func VerifyFlag(rsp http.ResponseWriter, req *http.Request) {
 
 	claims := &Claims{}
 
-	p := jwt.Parser{ValidMethods: []string{jwt.SigningMethodRS256.Name}}
+	p := jwt.Parser{ValidMethods: []string{eddsa.SigningMethodEdDSA.Alg()}}
 	tkn, err := p.ParseWithClaims(tknStr, claims, func(token *jwt.Token) (interface{}, error) {
 		return _configuration.VerifyKey, nil
 	})

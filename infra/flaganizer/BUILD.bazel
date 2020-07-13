@@ -9,14 +9,14 @@ go_image(
     name = "image",
     args = [
         "-jwt_public_key",
-        "$(location //jwtkeys:jwtRS256.key.pub)",
+        "$(location //jwtkeys:jwt.pub)",
         "-flag_config",
         "infra/flaganizer/flags.json",
         # FIXME: configure flag_key here
     ],
     data = [
         ":flags",
-        "//jwtkeys:jwtRS256.key.pub",
+        "//jwtkeys:jwt.pub",
     ],
     embed = [":go_default_library"],
     visibility = ["//visibility:public"],
@@ -27,7 +27,10 @@ go_library(
     srcs = ["main.go"],
     importpath = "github.com/adamyi/CTFProxy/infra/flaganizer",
     visibility = ["//visibility:private"],
-    deps = ["@com_github_dgrijalva_jwt_go//:go_default_library"],
+    deps = [
+        "//third_party/eddsa:go_default_library",
+        "@com_github_dgrijalva_jwt_go//:go_default_library",
+    ],
 )
 
 go_binary(

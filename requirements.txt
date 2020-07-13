@@ -7,7 +7,7 @@ chardet==3.0.4
 Click==7.0
 configparser==4.0.2
 contextlib2==0.6.0.post1
-cryptography==2.3.1
+cryptography==2.9.2
 dnspython==1.16.0
 enum34==1.1.6
 Flask==1.1.2
@@ -25,7 +25,7 @@ lxml==4.4.1
 MarkupSafe==1.1.1
 pathlib2==2.3.5
 pycparser==2.19
-PyJWT==1.7.1
+git+https://github.com/adamyi/pyjwt@dfd9448a85a280143065e60a570ad196ba480642
 pyrsistent==0.16.0
 requests==2.22.0
 scandir==1.10.0

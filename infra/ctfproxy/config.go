@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"crypto/rsa"
+	"crypto/ed25519"
 	"encoding/json"
 	"flag"
 	"io"
@@ -14,7 +14,7 @@ import (
 
 	"cloud.google.com/go/storage"
 	"github.com/adamyi/hotconfig"
-	"github.com/dgrijalva/jwt-go"
+	"github.com/adamyi/CTFProxy/third_party/eddsa"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 )
@@ -38,8 +38,8 @@ type Configuration struct {
 	RawServices            flagArray
 	RawServicesMap         map[string]bool
 	MTLSCA                 string
-	SignKey                *rsa.PrivateKey
-	VerifyKey              *rsa.PublicKey
+	SignKey                *ed25519.PrivateKey
+	VerifyKey              *ed25519.PublicKey
 	CorpDomain             string
 	ResolvingDomain        string
 	ServiceName            string
@@ -164,11 +164,11 @@ func readConfig() {
 	if err != nil {
 		panic(err)
 	}
-	_configuration.SignKey, err = jwt.ParseRSAPrivateKeyFromPEM(JwtKey)
+	_configuration.SignKey, err = eddsa.ParseEdPrivateKeyFromPEM(JwtKey)
 	if err != nil {
 		panic(err)
 	}
-	_configuration.VerifyKey, err = jwt.ParseRSAPublicKeyFromPEM(JwtPubKey)
+	_configuration.VerifyKey, err = eddsa.ParseEdPublicKeyFromPEM(JwtPubKey)
 	if err != nil {
 		panic(err)
 	}

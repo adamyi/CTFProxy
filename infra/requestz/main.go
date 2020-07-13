@@ -1,7 +1,7 @@
 package main
 
 import (
-	"crypto/rsa"
+	"crypto/ed25519"
 	"encoding/json"
 	"flag"
 	"io/ioutil"
@@ -12,11 +12,12 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/adamyi/CTFProxy/third_party/eddsa"
 )
 
 type Configuration struct {
 	ListenAddress string
-	VerifyKey     *rsa.PublicKey
+	VerifyKey     *ed25519.PublicKey
 }
 
 type Claims struct {
@@ -38,7 +39,7 @@ func readConfig() {
 	if err != nil {
 		panic(err)
 	}
-	_configuration.VerifyKey, err = jwt.ParseRSAPublicKeyFromPEM(JwtPubKey)
+	_configuration.VerifyKey, err = eddsa.ParseEdPublicKeyFromPEM(JwtPubKey)
 	if err != nil {
 		panic(err)
 	}
@@ -64,7 +65,7 @@ func handleRZ(rsp http.ResponseWriter, req *http.Request) {
 
 	claims := &Claims{}
 
-	p := jwt.Parser{ValidMethods: []string{jwt.SigningMethodRS256.Name}}
+	p := jwt.Parser{ValidMethods: []string{eddsa.SigningMethodEdDSA.Alg()}}
 	tkn, err := p.ParseWithClaims(tknStr, claims, func(token *jwt.Token) (interface{}, error) {
 		return _configuration.VerifyKey, nil
 	})

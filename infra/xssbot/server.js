@@ -2,7 +2,7 @@ const fs   = require('fs');
 const express = require('express');
 // const puppeteer = require('puppeteer');
 const {Cluster} = require('puppeteer-cluster');
-const jwt = require('jsonwebtoken');
+const jose = require('jose');
 
 const PORT = process.env.PORT || 8080;
 const TASKTIMEOUT = process.env.TASKTIMEOUT || 5000;
@@ -10,7 +10,7 @@ const MAXCONCURRENTY = process.env.MAXCONCURRENCY || 2;
 const CTFDOMAIN = '.'+process.env.CTFDOMAIN;
 const app = express();
 
-var publicKEY = fs.readFileSync('/jwtRS256.key.pub', 'utf8');
+var publicKEY = jose.JWK.asKey(fs.readFileSync('/jwt.pub', 'utf8'));
 
 function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 
@@ -81,7 +81,6 @@ function waitForNetworkIdle(page, timeout, reqtimeout,
       });
     });
     await page.setExtraHTTPHeaders({'X-Powered-By' : 'CTFProxy/xssbot'});
-    await page.goto(data.url);
     await Promise.all([
       page.goto(data.url),
       waitForNetworkIdle(page, 2000, 5000, 0),
@@ -98,14 +97,12 @@ function waitForNetworkIdle(page, timeout, reqtimeout,
     console.log(token);
     var djwt;
     if (token) {
-      jwt.verify(token, publicKEY, (err, decoded) => {
-        if (err) {
-          console.log('token invalid');
-          return res.json({success : false, message : 'Token is not valid'});
-        } else {
-          djwt = decoded;
-        }
-      });
+      try {
+        djwt = jose.JWT.verify(token, publicKEY);
+      } catch (err) {
+        console.log('token invalid');
+        return res.json({success : false, message : 'Token is not valid'});
+      }
     } else {
       console.log('auth token not supplied');
       return res.json(

@@ -48,11 +48,6 @@ func getRealAddr(host string) (string, error) {
 	}
 	host = sn + "." + _configuration.ResolvingDomain
 
-	// hack for GAE, which is no longer needed
-	// if strings.HasSuffix(host, ".apps.geegle.org") {
-	// 	host = "apps.geegle.org"
-	// }
-
 	ips, err := net.LookupIP(host)
 	if err != nil {
 		return "", err

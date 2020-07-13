@@ -12,6 +12,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/adamyi/CTFProxy/infra/ctfproxy/templates"
+	"github.com/adamyi/CTFProxy/third_party/eddsa"
 )
 
 func verifyPassword(email, password string) bool {
@@ -66,7 +67,7 @@ func handleLogin(rsp http.ResponseWriter, req *http.Request) {
 				ExpiresAt: expirationTime.Unix(),
 			},
 		}
-		ptoken := jwt.NewWithClaims(jwt.SigningMethodRS256, pclaims)
+		ptoken := jwt.NewWithClaims(eddsa.SigningMethodEdDSA, pclaims)
 		ptstr, err := ptoken.SignedString(_configuration.SignKey)
 		if err != nil {
 			NewCPError(http.StatusInternalServerError, "Internal Server Error", "Something went wrong while generating JWT", "", err.Error()).Write(rsp)

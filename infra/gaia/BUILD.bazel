@@ -12,10 +12,10 @@ go_image(
         "mysql",
         # FIXME: configure dbaddr here
         "-jwt_public_key",
-        "$(location //jwtkeys:jwtRS256.key.pub)",
+        "$(location //jwtkeys:jwt.pub)",
     ],
     data = [
-        "//jwtkeys:jwtRS256.key.pub",
+        "//jwtkeys:jwt.pub",
     ],
     embed = [":go_default_library"],
     visibility = ["//visibility:public"],
@@ -34,6 +34,7 @@ go_library(
         "ctf_domain": CTF_DOMAIN,
     },
     deps = [
+        "//third_party/eddsa:go_default_library",
         "@com_github_dgrijalva_jwt_go//:go_default_library",
         "@com_github_go_sql_driver_mysql//:go_default_library",
         "@org_golang_x_crypto//bcrypt:go_default_library",

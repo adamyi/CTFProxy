@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/adamyi/CTFProxy/third_party/eddsa"
 	"github.com/ulule/limiter/v3"
 	"github.com/ulule/limiter/v3/drivers/store/memory"
 )
@@ -166,7 +167,7 @@ func handleUP(rsp http.ResponseWriter, req *http.Request) {
 			ExpiresAt: expirationTime.Unix(),
 		},
 	}
-	ptoken := jwt.NewWithClaims(jwt.SigningMethodRS256, pclaims)
+	ptoken := jwt.NewWithClaims(eddsa.SigningMethodEdDSA, pclaims)
 	ptstr, err = ptoken.SignedString(_configuration.SignKey)
 	if err != nil {
 		NewCPError(http.StatusInternalServerError, "Internal Server Error", "Something went wrong while generating JWT", "", err.Error()).Write(rsp)
