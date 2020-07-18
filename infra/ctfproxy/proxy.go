@@ -174,15 +174,10 @@ func handleUP(rsp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	/*
-		NOTES(adamyi@): disabled due to info leak
-		trivially fix this by moving the upstream CPError handling logic to middleware
-		reenable this with care if websocket is needed
-		if req.URL.Path == "/ws" {
-			handleWs(ctx, rsp, req, ptstr, levelShift)
-			return
-		}
-	*/
+	if req.URL.Path == "/ws" {
+		handleWs(ctx, rsp, req, ptstr, levelShift)
+		return
+	}
 
 	bodyBytes, _ := ioutil.ReadAll(req.Body)
 	// req.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))

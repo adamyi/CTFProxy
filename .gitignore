@@ -133,6 +133,9 @@ dmypy.json
 Pipfile
 Pipfile.lock
 
+# annoying mac
+.DS_Store
+
 ### BEGIN: Copied from Geegle3 ###
 *.swp
 *.pyc

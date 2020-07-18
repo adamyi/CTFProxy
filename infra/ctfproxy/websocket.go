@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/gorilla/websocket"
 )
@@ -27,7 +28,7 @@ func wsCheckOrigin(r *http.Request) bool {
 		log.Printf("Couldn't parse url: %v", err)
 		return false
 	}
-	if ou.Host != h && ou.Host != "cli-relay.corp."+_configuration.CorpDomain {
+	if !strings.HasSuffix(ou.Host, _configuration.CorpDomain) {
 		log.Print("Origin doesn't match host")
 		return false
 	}
@@ -65,6 +66,12 @@ func handleWs(ctx context.Context, rsp http.ResponseWriter, req *http.Request, j
 			// If the WebSocket handshake fails, ErrBadHandshake is returned
 			// along with a non-nil *http.Response so that callers can handle
 			// redirects, authentication, etcetera.
+			// But first we need to check if it's a CTFProxy error to avoid
+			// internalDebug leak
+			if resp.Header.Get("Content-Type") == "ctfproxy/error" {
+				handleUpstreamCPError(rsp, resp)
+				return
+			}
 			if err := copyResponse(rsp, resp); err != nil {
 				log.Printf("couldn't write response after failed remote backend handshake: %s", err)
 			}

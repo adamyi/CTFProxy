@@ -29,10 +29,15 @@ http_archive(
 
 http_archive(
     name = "io_bazel_rules_docker",
-    sha256 = "dc97fccceacd4c6be14e800b2a00693d5e8d07f69ee187babfd04a80a9f8e250",
-    strip_prefix = "rules_docker-0.14.1",
-    urls = ["https://github.com/bazelbuild/rules_docker/releases/download/v0.14.1/rules_docker-v0.14.1.tar.gz"],
+    sha256 = "3cee35dcfbebd224f500f77210f99986a0d303ccf9ce006e3fe0dcf14d50689d",
+    strip_prefix = "rules_docker-a012c6d7ab8d58417f4b805a61cbd397248c9f21",
+    urls = ["https://github.com/adamyi/rules_docker/archive/a012c6d7ab8d58417f4b805a61cbd397248c9f21.tar.gz"],
 )
+
+# local_repository(
+#     name = "io_bazel_rules_docker",
+#     path = "../rules_docker",
+# )
 
 load(
     "@io_bazel_rules_docker//repositories:repositories.bzl",
@@ -40,6 +45,14 @@ load(
 )
 
 container_repositories()
+
+load("@io_bazel_rules_docker//repositories:deps.bzl", container_deps = "deps")
+
+container_deps()
+
+load("@io_bazel_rules_docker//repositories:pip_repositories.bzl", container_pip_deps = "pip_deps")
+
+container_pip_deps()
 
 http_archive(
     name = "bazel_gazelle",
@@ -82,6 +95,30 @@ http_archive(
     name = "build_bazel_rules_nodejs",
     sha256 = RULES_NODEJS_SHA256,
     url = "https://github.com/bazelbuild/rules_nodejs/releases/download/%s/rules_nodejs-%s.tar.gz" % (RULES_NODEJS_VERSION, RULES_NODEJS_VERSION),
+)
+
+http_archive(
+    name = "io_bazel_rules_closure",
+    sha256 = "9161f3b719008b223846b0df63c7674c6e2d67c81e052a9864f90736505c35f3",
+    strip_prefix = "rules_closure-62746bdd1087c1198a81143e7d8ef3d144a43c0f",
+    urls = [
+        "https://github.com/bazelbuild/rules_closure/archive/62746bdd1087c1198a81143e7d8ef3d144a43c0f.tar.gz",
+    ],
+)
+
+load("@io_bazel_rules_closure//closure:repositories.bzl", "rules_closure_dependencies", "rules_closure_toolchains")
+
+rules_closure_dependencies()
+
+rules_closure_toolchains()
+
+http_archive(
+    name = "com_github_grpc_grpc_web",
+    sha256 = "283fdea0ff1539f47315700fc557837d539cbaa2b6e5e5dcb0b7280d3f054029",
+    strip_prefix = "grpc-web-6b99a37519fd5de2d46f7fd4d1d293504e15161f",
+    urls = [
+        "https://github.com/grpc/grpc-web/archive/6b99a37519fd5de2d46f7fd4d1d293504e15161f.tar.gz",
+    ],
 )
 
 load("@io_bazel_rules_docker//container:pull.bzl", "container_pull")
@@ -410,8 +447,8 @@ go_repository(
 go_repository(
     name = "org_golang_google_grpc",
     importpath = "google.golang.org/grpc",
-    sum = "h1:EC2SB8S04d2r73uptxphDSUG+kTKVgjRPF+N3xpxRB4=",
-    version = "v1.29.1",
+    sum = "h1:M5a8xTlYTxwMn5ZFkwhRabsygDY5G8TYLyQDBxJNAxE=",
+    version = "v1.30.0",
 )
 
 go_repository(
@@ -440,9 +477,9 @@ http_archive(
 http_archive(
     name = "ctfd",
     build_file = "@//third_party/ctfd:ctfd.BUILD",
-    sha256 = "b9258a65f72843a04a45002e94f7e7f95b187c46321e333537c05985c57612eb",
-    strip_prefix = "CTFd-1503a290329c47896196c78d98daa7bedf3ab09d",
-    url = "https://github.com/secedu/CTFd/archive/1503a290329c47896196c78d98daa7bedf3ab09d.zip",
+    sha256 = "31a0046dba807a66b637ff82e53ed99159b27c6fc5ac5d9ed78b59e68fb43600",
+    strip_prefix = "CTFd-b3fd3832d5ab7484abe52dcc84e15a93374b617b",
+    url = "https://github.com/secedu/CTFd/archive/b3fd3832d5ab7484abe52dcc84e15a93374b617b.tar.gz",
 )
 
 # Local copy of CTFd, for local debugging purposes
@@ -677,4 +714,39 @@ go_repository(
     importpath = "github.com/ulule/limiter/v3",
     sum = "h1:QRAebbswjlezHIfiSQgM8+jMxaz/zsrxGRuiUJ43MHo=",
     version = "v3.5.0",
+)
+
+go_repository(
+    name = "com_github_improbable_eng_grpc_web",
+    importpath = "github.com/improbable-eng/grpc-web",
+    sum = "h1:7XqtaBWaOCH0cVGKHyvhtcuo6fgW32Y10yRKrDHFHOc=",
+    version = "v0.13.0",
+)
+
+go_repository(
+    name = "com_github_desertbit_timer",
+    importpath = "github.com/desertbit/timer",
+    sum = "h1:U5y3Y5UE0w7amNe7Z5G/twsBW0KEalRQXZzf8ufSh9I=",
+    version = "v0.0.0-20180107155436-c41aec40b27f",
+)
+
+go_repository(
+    name = "com_github_rs_cors",
+    importpath = "github.com/rs/cors",
+    sum = "h1:+88SsELBHx5r+hZ8TCkggzSstaWNbDvThkVK8H6f9ik=",
+    version = "v1.7.0",
+)
+
+go_repository(
+    name = "com_github_rpcxio_gomemcached",
+    importpath = "github.com/rpcxio/gomemcached",
+    sum = "h1:/jGV5cu7zNStDo+A5r3/CHIBH2ENgvw59fM2wgzFtQE=",
+    version = "v0.0.0-20200223142310-2dc6f77e072e",
+)
+
+go_repository(
+    name = "com_github_yeka_zip",
+    importpath = "github.com/yeka/zip",
+    sum = "h1:OJYP70YMddlmGq//EPLj8Vw2uJXmrA+cGSPhXTDpn2E=",
+    version = "v0.0.0-20180914125537-d046722c6feb",
 )
