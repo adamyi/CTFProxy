@@ -10,6 +10,7 @@ import (
 	"runtime/debug"
 	"strings"
 
+	"github.com/adamyi/CTFProxy/infra/ctfproxy/defaultfiles"
 	"github.com/adamyi/CTFProxy/infra/ctfproxy/templates"
 )
 
@@ -40,9 +41,12 @@ func NewCPError(code int, title, description, publicDebug, internalDebug string)
 	return ret
 }
 
-func (e CPError) Write(w http.ResponseWriter) {
+func (e CPError) Write(w http.ResponseWriter, r *http.Request) {
 	if e.Code >= 300 && e.Code < 400 {
 		w.Header().Add("Location", e.Description)
+	} else if e.Code == 404 && len(defaultfiles.Data[r.URL.Path[1:]]) > 0 {
+		w.Write(defaultfiles.Data[r.URL.Path[1:]])
+		return
 	}
 	w.WriteHeader(e.Code)
 	dbgstr := e.PublicDebug
@@ -60,14 +64,14 @@ func WrapHandlerWithRecovery(wrappedHandler http.Handler) http.Handler {
 			if err != nil {
 				log.Println("[PANIC RECOVERY TRIGGERED] something terrible happened.")
 				log.Println(err)
-				NewCPError(http.StatusInternalServerError, "Server Internal Error", "Something went terribly wrong...", "", fmt.Sprintf("===panic recovery===\n%v", err)).Write(w)
+				NewCPError(http.StatusInternalServerError, "Server Internal Error", "Something went terribly wrong...", "", fmt.Sprintf("===panic recovery===\n%v", err)).Write(w, r)
 			}
 		}()
 		wrappedHandler.ServeHTTP(w, r)
 	})
 }
 
-func handleUpstreamCPError(rw http.ResponseWriter, resp *http.Response) {
+func handleUpstreamCPError(rw http.ResponseWriter, resp *http.Response, req *http.Request) {
 	defer resp.Body.Close()
 	var e CPError
 	err := json.NewDecoder(resp.Body).Decode(&e)
@@ -75,5 +79,5 @@ func handleUpstreamCPError(rw http.ResponseWriter, resp *http.Response) {
 		e = *NewCPError(http.StatusInternalServerError, "Server Internal Error", "Something went wrong with the service, please try again later", "", "upstream service returned ctfproxy/uperror but failed to decode CPError json "+err.Error())
 	}
 	e.SetType("s")
-	e.Write(rw)
+	e.Write(rw, req)
 }

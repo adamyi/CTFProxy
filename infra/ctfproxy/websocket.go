@@ -69,7 +69,7 @@ func handleWs(ctx context.Context, rsp http.ResponseWriter, req *http.Request, j
 			// But first we need to check if it's a CTFProxy error to avoid
 			// internalDebug leak
 			if resp.Header.Get("Content-Type") == "ctfproxy/error" {
-				handleUpstreamCPError(rsp, resp)
+				handleUpstreamCPError(rsp, resp, req)
 				return
 			}
 			if err := copyResponse(rsp, resp); err != nil {

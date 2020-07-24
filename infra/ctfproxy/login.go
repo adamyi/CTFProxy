@@ -70,7 +70,7 @@ func handleLogin(rsp http.ResponseWriter, req *http.Request) {
 		ptoken := jwt.NewWithClaims(eddsa.SigningMethodEdDSA, pclaims)
 		ptstr, err := ptoken.SignedString(_configuration.SignKey)
 		if err != nil {
-			NewCPError(http.StatusInternalServerError, "Internal Server Error", "Something went wrong while generating JWT", "", err.Error()).Write(rsp)
+			NewCPError(http.StatusInternalServerError, "Internal Server Error", "Something went wrong while generating JWT", "", err.Error()).Write(rsp, req)
 			return
 		}
 		authcookie := &http.Cookie{Name: _configuration.AuthCookieKey, Value: ptstr, HttpOnly: true, Domain: _configuration.CorpDomain}
@@ -81,6 +81,6 @@ func handleLogin(rsp http.ResponseWriter, req *http.Request) {
 			http.Redirect(rsp, req, req.URL.Query().Get("return_url"), http.StatusFound)
 		}
 	} else {
-		NewCPError(http.StatusMethodNotAllowed, "Method Not Allowed", "Only GET and POST are supported", "", "").Write(rsp)
+		NewCPError(http.StatusMethodNotAllowed, "Method Not Allowed", "Only GET and POST are supported", "", "").Write(rsp, req)
 	}
 }

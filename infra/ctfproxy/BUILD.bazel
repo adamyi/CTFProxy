@@ -88,6 +88,7 @@ go_library(
         "github.com/adamyi/CTFProxy/infra/ctfproxy.GitVersion": "{STABLE_GIT_VERSION}",
     },
     deps = [
+        "//infra/ctfproxy/defaultfiles:go_default_library",
         "//infra/ctfproxy/templates:go_default_library",
         "//third_party/autocertcache:go_default_library",
         "//third_party/eddsa:go_default_library",

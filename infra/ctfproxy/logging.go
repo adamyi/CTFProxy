@@ -64,11 +64,11 @@ func WrapHandlerWithLogging(wrappedHandler http.Handler) http.Handler {
 		buf := new(bytes.Buffer)
 		lrw := newUplogResponseWriter(buf, w, &entry)
 		if lrerr != nil {
-			NewCPError(http.StatusBadRequest, "You issued a malformed request", "Entity Too Large", "", "").Write(lrw)
+			NewCPError(http.StatusBadRequest, "You issued a malformed request", "Entity Too Large", "", "").Write(lrw, req)
 		} else if limitedReader.N < 1 {
-			NewCPError(http.StatusRequestEntityTooLarge, "You issued a malformed request", "Entity Too Large", "", "").Write(lrw)
+			NewCPError(http.StatusRequestEntityTooLarge, "You issued a malformed request", "Entity Too Large", "", "").Write(lrw, req)
 		} else if len(reqcontent) > 0 && req.Method == "GET" {
-			NewCPError(http.StatusBadRequest, "You issued a malformed request", "No Body for GET", "", "").Write(lrw)
+			NewCPError(http.StatusBadRequest, "You issued a malformed request", "No Body for GET", "", "").Write(lrw, req)
 		} else {
 			wrappedHandler.ServeHTTP(lrw, req)
 		}

@@ -145,16 +145,16 @@ func (f Flag) GenFlag(username string) string {
 	if f.Type == "dynamic" {
 		return genFlag(f.Prefix, username, f.Flag, f.Id)
 	}
-	return "NOT_A_FLAG{WRONG_FLAG_TYPE_ASK_COURSE_STAFF}"
+	return "NOT_A_FLAG{WRONG_FLAG_TYPE_ASK_STAFF}"
 }
 
 func (f Flag) GetFlag(username string) string {
 	userparts := strings.FieldsFunc(username, UserSplit)
 	if len(userparts) != 3 {
-		return "NOT_A_FLAG{NO_SUBACC_FOR_DYNAMIC_FLAG_ASK_COURSE_STAFF}"
+		return "NOT_A_FLAG{NO_SUBACC_FOR_DYNAMIC_FLAG_ASK_STAFF}"
 	}
 	if userparts[0] != f.Owner {
-		return "NOT_A_FLAG{NO_PERMISSION_TO_GET_FLAG_ASK_COURSE_STAFF}"
+		return "NOT_A_FLAG{NO_PERMISSION_TO_GET_FLAG_ASK_STAFF}"
 	}
 	return f.GenFlag(userparts[1])
 }
@@ -173,15 +173,15 @@ func GenerateFlag(rsp http.ResponseWriter, req *http.Request) {
 
 	if err != nil {
 		if err == jwt.ErrSignatureInvalid {
-			rsp.Write([]byte("NOT_A_FLAG{JWT_SIGNATURE_INVALID_ASK_COURSE_STAFF}"))
+			rsp.Write([]byte("NOT_A_FLAG{JWT_SIGNATURE_INVALID_ASK_STAFF}"))
 			return
 		}
-		rsp.Write([]byte("NOT_A_FLAG{JWT_ERROR_ASK_COURSE_STAFF}"))
+		rsp.Write([]byte("NOT_A_FLAG{JWT_ERROR_ASK_STAFF}"))
 		return
 	}
 
 	if !tkn.Valid {
-		rsp.Write([]byte("NOT_A_FLAG{JWT_INVALID_ASK_COURSE_STAFF}"))
+		rsp.Write([]byte("NOT_A_FLAG{JWT_INVALID_ASK_STAFF}"))
 		return
 	}
 
@@ -189,7 +189,7 @@ func GenerateFlag(rsp http.ResponseWriter, req *http.Request) {
 
 	flagObj, ok := _flags[req.URL.Query().Get("id")]
 	if !ok {
-		rsp.Write([]byte("NOT_A_FLAG{WRONG_FLAG_ID_ASK_COURSE_STAFF}"))
+		rsp.Write([]byte("NOT_A_FLAG{WRONG_FLAG_ID_ASK_STAFF}"))
 		return
 	}
 

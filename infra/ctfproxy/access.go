@@ -53,7 +53,7 @@ func hasAccess(servicename, username string, groups []string, req *http.Request)
 		log.Printf("lazy compiling %s_access.star", servicename)
 		_, prog, err = starlark.SourceProgram(servicename+"_access.star", code, isPredeclared)
 		if err != nil {
-			return NewCPError(http.StatusInternalServerError, "Error happened while determining access rights", "contact course staff if you believe this shouldn't happen", "", err.Error())
+			return NewCPError(http.StatusInternalServerError, "Error happened while determining access rights", "contact staff if you believe this shouldn't happen", "", err.Error())
 		}
 		aclAstCache[servicename] = prog
 	}
@@ -77,7 +77,7 @@ func hasAccess(servicename, username string, groups []string, req *http.Request)
 	denyAccess := func(thread *starlark.Thread, b *starlark.Builtin, args starlark.Tuple, kwargs []starlark.Tuple) (starlark.Value, error) {
 		var code int = http.StatusForbidden
 		var title string = "403 Forbidden"
-		var description string = "Contact course staff if you believe you should have access"
+		var description string = "Contact staff if you believe you should have access"
 		if err := starlark.UnpackArgs(b.Name(), args, kwargs, "code?", &code, "title?", &title, "description?", &description); err != nil {
 			return nil, err
 		}
@@ -115,7 +115,7 @@ func hasAccess(servicename, username string, groups []string, req *http.Request)
 	go func() {
 		g, err := prog.Init(thread, predeclared)
 		g.Freeze()
-		e := NewCPError(http.StatusForbidden, "403 Forbidden", "Contact course staff if you believe you should have access", "", servicename+"_access.star returned without granting access, default denial")
+		e := NewCPError(http.StatusForbidden, "403 Forbidden", "Contact staff if you believe you should have access", "", servicename+"_access.star returned without granting access, default denial")
 		if err != nil {
 			if err.Error() == "ctfproxy: returned" {
 				return
@@ -124,7 +124,7 @@ func hasAccess(servicename, username string, groups []string, req *http.Request)
 			if evalerr, ok := err.(*starlark.EvalError); ok {
 				estr = evalerr.Backtrace()
 			}
-			e = NewCPError(http.StatusInternalServerError, "Error happened while determining access rights", "contact course staff if you believe this shouldn't happen", "", estr)
+			e = NewCPError(http.StatusInternalServerError, "Error happened while determining access rights", "contact staff if you believe this shouldn't happen", "", estr)
 		}
 		select {
 		case ret <- e:
@@ -136,6 +136,6 @@ func hasAccess(servicename, username string, groups []string, req *http.Request)
 	case e := <-ret:
 		return e
 	case <-time.After(1 * time.Second):
-		return NewCPError(http.StatusInternalServerError, "Error happened while determining access rights", "contact course staff if you believe this shouldn't happen", "", servicename+"_access.star timed out during evaluation")
+		return NewCPError(http.StatusInternalServerError, "Error happened while determining access rights", "contact staff if you believe this shouldn't happen", "", servicename+"_access.star timed out during evaluation")
 	}
 }
