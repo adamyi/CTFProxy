@@ -114,6 +114,15 @@ func (w *uplogResponseWriter) Header() http.Header {
 }
 
 func (w *uplogResponseWriter) Write(b []byte) (int, error) {
+	// this ensures we remove debug headers
+	if !w.wroteHeader {
+		_, hasContentType := w.resp.Header()["Content-Type"]
+		// if Content-Encoding is non-blank, we shouldn't sniff the body.
+		if len(w.resp.Header().Get("Content-Encoding")) == 0 && !hasContentType && len(b) > 0 {
+			w.resp.Header().Set("Content-Type", http.DetectContentType(b))
+		}
+		w.WriteHeader(http.StatusOK)
+	}
 	return w.multi.Write(b)
 }
 
