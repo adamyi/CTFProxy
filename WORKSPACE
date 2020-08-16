@@ -253,6 +253,13 @@ container_pull(
 )
 
 container_pull(
+    name = "python2.7.17",
+    digest = "sha256:9b7d62026be68c2e91c17fb4e0499454e41ebf498ef345f9ad6e100a67e4b697",
+    registry = "index.docker.io",
+    repository = "python",
+)
+
+container_pull(
     name = "python3-base",
     digest = "sha256:d182a775e372d82d92b59ff5debeabcb699964fe163320eb9fc5ebb971c51ec3",
     registry = "index.docker.io",

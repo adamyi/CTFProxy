@@ -12,8 +12,9 @@ container_image(
         "CTFDOMAIN": CTF_DOMAIN,
         "DEBUG": "puppeteer-cluster:*",
         "MAXCONCURRENTY": "5",
+        "NETIDLETIMEOUT": "5000",
+        "NEWREQIDLETIMEOUT": "5000",
         "PORT": "80",
-        "TASKTIMEOUT": "90000",
     },
     files = [
         "//jwtkeys:jwt.pub",
