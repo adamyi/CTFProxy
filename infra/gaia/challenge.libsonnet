@@ -2,7 +2,7 @@
   services: [
     {
       name: 'gaia',
-      replicas: 3,
+      replicas: 1,
       category: 'infra',
       clustertype: 'master',
       access: |||

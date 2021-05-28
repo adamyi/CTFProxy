@@ -2,7 +2,7 @@
   services: [
     {
       name: 'xssbot',
-      replicas: 4,
+      replicas: 1,
       category: 'infra',
       clustertype: 'master',
       access: |||

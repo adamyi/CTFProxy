@@ -2,7 +2,7 @@
   services: [
     {
       name: 'ctfd',
-      replicas: 3,
+      replicas: 1,
       category: 'infra',
       clustertype: 'master',
       persistent: '100M',

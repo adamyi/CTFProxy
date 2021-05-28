@@ -484,9 +484,9 @@ http_archive(
 http_archive(
     name = "ctfd",
     build_file = "@//third_party/ctfd:ctfd.BUILD",
-    sha256 = "31a0046dba807a66b637ff82e53ed99159b27c6fc5ac5d9ed78b59e68fb43600",
-    strip_prefix = "CTFd-b3fd3832d5ab7484abe52dcc84e15a93374b617b",
-    url = "https://github.com/secedu/CTFd/archive/b3fd3832d5ab7484abe52dcc84e15a93374b617b.tar.gz",
+    sha256 = "e01127cb96434353738b560b88b883cd7c0cf14615453a147ecf8ffa93b8db68",
+    strip_prefix = "CTFd-f41a4a9780c3a6c3a9669940d19a3e5cf0c172fe",
+    url = "https://github.com/secedu/CTFd/archive/f41a4a9780c3a6c3a9669940d19a3e5cf0c172fe.tar.gz",
 )
 
 # Local copy of CTFd, for local debugging purposes

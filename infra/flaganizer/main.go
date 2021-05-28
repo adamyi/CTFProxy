@@ -306,7 +306,12 @@ func exportLog() {
 		rows.Scan(&email, &ip, &flag, &datetime)
 		user := strings.Split(email, "@")[0]
 		f, err := doVerifyFlag(flag, user)
-		fmt.Printf("[%s] %s (%s) - %s - %v %v\n", datetime, email, ip, flag, f, err)
+		if err != nil {
+			fmt.Printf("\033[0;31m")
+		} else {
+			fmt.Printf("\033[0;32m")
+		}
+		fmt.Printf("[%s] %s (%s) - %s - %v %v\033[0m\n", datetime, email, ip, flag, f, err)
 	}
 }
 

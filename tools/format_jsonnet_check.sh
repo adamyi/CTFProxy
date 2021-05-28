@@ -1,5 +1,5 @@
 for i in $(find -name \*.jsonnet -or -name \*.libsonnet); do
-  bazel run --experimental_ui_limit_console_output=1 @jsonnet_go//cmd/jsonnetfmt -- $PWD/$i > format_check_tmp.jsonnet
+  bazel run --ui_event_filters=-INFO --noshow_progress @jsonnet_go//cmd/jsonnetfmt -- $PWD/$i > format_check_tmp.jsonnet
   if cmp -s $i format_check_tmp.jsonnet; then
     echo OK $i
   else

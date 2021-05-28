@@ -13,12 +13,6 @@ build --symlink_prefix=dist/
 # This prevents accidentally depending on this feature, which Bazel will remove.
 build --nolegacy_external_runfiles
 
-# Turn on the "Managed Directories" feature.
-# This allows Bazel to share the same node_modules directory with other tools
-# NB: this option was introduced in Bazel 0.26
-# See https://docs.bazel.build/versions/master/command-line-reference.html#flag--experimental_allow_incremental_repository_updates
-common --experimental_allow_incremental_repository_updates
-
 # Disable sandbox on Mac OS for performance reason.
 build --spawn_strategy=local
 run --spawn_strategy=local
