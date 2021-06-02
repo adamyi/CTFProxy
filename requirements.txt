@@ -30,7 +30,7 @@ pyrsistent==0.16.0
 requests==2.22.0
 scandir==1.10.0
 six==1.12.0
-urllib3==1.25.3
+urllib3==1.26.5
 uuid==1.30
 Werkzeug==0.15.5
 WTForms==2.3.1
