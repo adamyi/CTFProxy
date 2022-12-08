@@ -1,7 +1,7 @@
 asn1crypto==1.2.0
 attrs==19.3.0
 base58==1.0.3
-certifi==2019.6.16
+certifi==2022.12.7
 cffi==1.13.1
 chardet==3.0.4
 Click==7.0
