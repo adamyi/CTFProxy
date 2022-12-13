@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "dependencies": {
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "jose": "^1.27.2",
     "jsonwebtoken": "^8.5.1",
     "puppeteer": "^1.19.0",
