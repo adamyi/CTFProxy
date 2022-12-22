@@ -5,7 +5,7 @@
   "dependencies": {
     "express": "^4.17.1",
     "jose": "^1.27.2",
-    "jsonwebtoken": "^8.5.1",
+    "jsonwebtoken": "^9.0.0",
     "puppeteer": "^1.19.0",
     "puppeteer-cluster": "^0.17.0"
   },
